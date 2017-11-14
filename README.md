@@ -1,2 +1,2 @@
 # coursechatbot
-Chatbot to help students browse courses
+Chatbot to help students browse courses.
