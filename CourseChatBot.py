@@ -277,9 +277,40 @@ def to_number(s):
     except TypeError:
         return 0
 
+month_dict = {"jan":"01",
+              "feb":"02",
+              "mar":"03",
+              "apr":"04",
+              "may":"05",
+              "jun":"06",
+              "jul":"07",
+              "aug":"08",
+              "sep":"09",
+              "oct":"10",
+              "nov":"11",
+              "dec":"12"
+              }
+
+def getNumericMonth(month):
+    if month.isnumeric():
+        month = "0" + month
+        return month[len(month)-2:len(month)]
+    else:
+        strMonth = month.lower()[0:3]
+        return month_dict[strMonth]
+
+#getNumericMonth('01')
+#getNumericMonth('1')
+#getNumericMonth('jan')
+#getNumericMonth('nov')
+#getNumericMonth('12')
+
 def findDate(inpString):
+    day = ''
+    month = ''
+    year = ''
     # check for dmy format
-    datePattern = re.compile(r'(((^| )[1-9]|[0][1-9]|[1-2][0-9]|[3][0-1])[ \./-](Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December|[0]*[1-9]|[1][0-2])[ \./-](\d{4}))')
+    datePattern = re.compile(r'(([1-9]|[0][1-9]|[1-2][0-9]|[3][0-1])[ \./-](Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December|[0]*[1-9]|[1][0-2])[ \./-](\d{4}))')
     validDate = datePattern.findall(inpString)
     
     if (validDate == None or validDate == []):
@@ -291,13 +322,42 @@ def findDate(inpString):
             # check for month year format
             datePattern = re.compile(r'((Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[ \./-](\d{4}))')
             validDate = datePattern.findall(inpString)
-    
+            if (validDate != None and validDate != []):
+                # valid month-year date
+                print("my:",validDate)
+                day = '01'
+                month = validDate[0][1]
+                year = validDate[0][2]
+        else:
+            # valid ymd date
+            print("ymd:",validDate)
+            year = validDate[0][1]
+            month = validDate[0][2]
+            day = validDate[0][3]
+    else:
+        # valid dmy date
+        print("dmy:",validDate)
+        day = validDate[0][1]
+        month = validDate[0][2]
+        year = validDate[0][3]
+        
     if (validDate == None or validDate == []):
         #print('No valid date in:',inpString)
         return None
     else:
         #print('Valid date found:', validDate)
-        return validDate[0][0]
+        #return validDate[0][0]
+        
+        #return date in y-m-d format
+        numMonth = getNumericMonth(month)
+        return year + "-" + numMonth + "-" + day
+
+#findDate("before 01 Jan 2018")
+#findDate("before May 2018")
+#findDate("before 05-Nov-2018")
+#findDate("before 2018-03-31")
+#findDate("after 5 August 2018")
+
 
 def findAmount(inpString):
     amountPattern = re.compile(r'[^ ][\d]+[,\.\d]*(^month|day|year)[$ ]')
@@ -416,8 +476,9 @@ def findEntities(inpString):
             #filterQuery = filterQuery + andText + 'df["city"].isin (['
             comma = ''
             
-            if cities != None and cities != '':
-                comma = ','
+            #if cities != None and cities != '':
+            #    comma = ','
+            cities = ''
                 
             for city in loc.cities:
                 #filterQuery = filterQuery + comma + '"' + city + '"'
@@ -429,9 +490,10 @@ def findEntities(inpString):
         if loc.countries != None and loc.countries != []:
             #filterQuery = filterQuery + andText + 'df["country_name"].isin (['
             comma = ''
-            if countries != None and countries != '':
-                comma = ','
-                
+            #if countries != None and countries != '':
+            #    comma = ','
+            countries = ''
+            
             for country in loc.countries:
                 #filterQuery = filterQuery + comma + '"' + country + '"'
                 countries = countries + comma + '"' + country + '"'
@@ -534,7 +596,7 @@ def displayResults():
         
     if filterQuery != '':
         filterQueryExec = 'data = df['+filterQuery+'][['+outputColumns+']]'
-        #print(filterQueryExec)
+        print(filterQueryExec)
         exec(filterQueryExec)
         if (len(data) == 0):
             print("CB: Sorry I did not find any courses matching your search :(. Try again")
@@ -604,7 +666,7 @@ while (True):
             print ("CB: ", intent.response)
             filterQuery = findEntities(response)
             filterQueryExec = 'data = df['+filterQuery+'][['+outputColumns+']]'
-            #print(filterQueryExec)
+            print(filterQueryExec)
             exec(filterQueryExec)
             resultSize = len(data)
             if resultSize == 0:
