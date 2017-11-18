@@ -6,9 +6,7 @@ import numpy as np
 import nltk
 from nltk.tokenize import sent_tokenize
 import pandas as pd
-import math
-from nltk.corpus import wordnet as wn
-import nltk
+#from nltk.corpus import wordnet as wn
 
 nltk.download('corpora/wordnet')
 
@@ -33,6 +31,8 @@ training_data.append({"class":"greeting", "sentence":"good evening!"})
 training_data.append({"class":"greeting", "sentence":"namastey!"})
 training_data.append({"class":"greeting", "sentence":"hey!"})
 training_data.append({"class":"greeting", "sentence":"hi!"})
+training_data.append({"class":"greeting", "sentence":"hello!"})
+training_data.append({"class":"greeting", "sentence":"hey there!"})
 
 training_data.append({"class":"search", "sentence":"i want to find machine learning courses in mumbai"})
 training_data.append({"class":"search", "sentence":"can you give me a list of management programs in india?"})
@@ -61,6 +61,9 @@ training_data.append({"class":"stop", "sentence":"ok am bored now"})
 training_data.append({"class":"stop", "sentence":"ok stop it"})
 training_data.append({"class":"stop", "sentence":"i dont need more"})
 training_data.append({"class":"stop", "sentence":"good day!"})
+training_data.append({"class":"stop", "sentence":"bye"})
+training_data.append({"class":"stop", "sentence":"good bye"})
+training_data.append({"class":"stop", "sentence":"stop"})
 
 training_data.append({"class":"showfees", "sentence":"what are the fees?"})
 training_data.append({"class":"showfees", "sentence":"what are the damages?"})
@@ -253,20 +256,39 @@ def identifyIntents (response):
 ##################################################
 # Identify entities. Not in use currently
 ##################################################
-class Socket(object):
-    cities=''
-    countries=''
-    commencement_date_from=''
-    commencement_date_to=''
-    commencement_date_comp_operator=''
-    fee_amount=''
-    fee_currency=''
-    fee_comparison_operator=''
-    duration_from=''
-    duration_to=''
-    duration_unit=''
-    program_name=''
-    course_name=''
+class Entity(object):
+    amount = ''
+    currency = ''
+    duration = ''
+    date = ''
+    cities = ''
+    countries = ''
+    filterQuery = ''
+    showuniv = False
+    showfees = False
+    showstructure = False
+    showcity = False
+    showcountry = False
+    showduration = False
+    showdate = False
+    outputColumns = '\'program_name\''
+    
+    def __init__(self):
+        self.amount = ''
+        self.currency = ''
+        self.duration = ''
+        self.date = ''
+        self.cities = ''
+        self.countries = ''
+        self.filterQuery = ''
+        self.showuniv = False
+        self.showfees = False
+        self.showstructure = False
+        self.showcity = False
+        self.showcountry = False
+        self.showduration = False
+        self.showdate = False
+        self.outputColumns = '\'program_name\''
     
 def to_number(s):
     try:
@@ -305,6 +327,9 @@ def getNumericMonth(month):
 #getNumericMonth('nov')
 #getNumericMonth('12')
 
+###################################################################################
+# Find date entered in text and return y-m-d format
+###################################################################################
 def findDate(inpString):
     day = ''
     month = ''
@@ -358,21 +383,28 @@ def findDate(inpString):
 #findDate("before 2018-03-31")
 #findDate("after 5 August 2018")
 
-
+###################################################################################
+# Find amount entered (comma separated, non-comma separated
+###################################################################################
 def findAmount(inpString):
     amountPattern = re.compile(r'[^ ][\d]+[,\.\d]*(^month|day|year)[$ ]')
     amount=amountPattern.findall(inpString)
     #print(amount)
     return amount
 
+###################################################################################
+# Find currency entered in text ($s and Rs only as of now)
+###################################################################################
 def findCurrency(inpString):
     currencyPattern=re.compile(r'[$₹]|inr|usd|Rs\.*|rupees|dollars')
     currency=currencyPattern.findall(inpString.lower())
     #print(currency)
     return currency
 
-# check for duration entered and convert the figure to days
-# here 1 month = 30 days, 1 year = 360 days
+###################################################################################
+# Check for duration entered and convert the figure to days
+# Here 1 month = 30 days, 1 year = 360 days
+###################################################################################
 def findDuration(inpString):
     durationPattern=re.compile(r'(\d+) *(month|year|day)')
     duration=durationPattern.findall(inpString.lower())
@@ -395,163 +427,208 @@ def findDuration(inpString):
     return durationInDays
 
 ###################################################################################
+# Method to identify cities and countries in a text
+###################################################################################
+def findCitiesAndCountries(inpString):
+    cityFound = False
+    countryFound = False
+    
+    locCities = []
+    locCountries = []
+    
+    loc = GeoText(inpString)
+        
+    if loc != None:
+        if loc.cities != None and loc.cities != []:                
+            for city in loc.cities:
+                locCities.append(city)
+            cityFound = True
+            
+        if loc.countries != None and loc.countries != []:
+            for country in loc.countries:
+                locCountries.append(country)
+            countryFound = True
+    
+    if not cityFound or not countryFound:
+        # split string into individual words, make camel case and check again
+        for w in inpString.split():
+            w = w.capitalize()
+            print(w)
+            loc = GeoText(w)
+            print(loc)
+            
+            if loc != None:
+                if cityFound == False and loc.cities != None and loc.cities != []:
+
+                    for city in loc.cities:
+                        locCities.append(city)
+                    
+                if countryFound == False and loc.countries != None and loc.countries != []:
+                    
+                    for country in loc.countries:
+                        locCountries.append(country)
+    
+    return locCities, locCountries
+
+###################################################################################
 # Global variables. Reference as "global" in the methods that you use them
 ###################################################################################
 
-amount = ''
-currency = ''
-duration = ''
-date = ''
-cities = ''
-countries = ''
-filterQuery = ''
-showuniv = False
-showfees = False
-showstructure = False
-showcity = False
-showcountry = False
-showduration = False
-showdate = False
-outputColumns = '\'program_name\''
+entity = Entity()
     
 ###################################################################################
 # Method to initialize the global variables on every search error to reset the data
 ###################################################################################
 def clearEntities():
-    global amount
-    global currency
-    global duration
-    global date
-    global cities
-    global countries
-    global filterQuery
-    global outputColumns
-    global showuniv
-    global showfees
-    global showstructure
-    global showcity
-    global showcountry
-    global showduration
-    global showdate
+#    global amount
+#    global currency
+#    global duration
+#    global date
+#    global cities
+#    global countries
+#    global filterQuery
+#    global outputColumns
+#    global showuniv
+#    global showfees
+#    global showstructure
+#    global showcity
+#    global showcountry
+#    global showduration
+#    global showdate
     
-    amount = ''
-    currency = ''
-    duration = ''
-    date = ''
-    cities = ''
-    countries = ''
+    global entity
+    
+    entity.__init__()
+    #amount = ''
+    #currency = ''
+    #duration = ''
+    #date = ''
+    #cities = ''
+    #countries = ''
+    #filterQuery = ''
+    #showuniv = False
+    #showfees = False
+    #showstructure = False
+    #showcity = False
+    #showcountry = False
+    #showduration = False
+    #showdate = False
+    #outputColumns = '\'program_name\''
+
+##################################################################
+# Method to build dataset query
+##################################################################
+def buildQuery():
+#    global amount
+#    global currency
+#    global duration
+#    global date
+#    global cities
+#    global countries
+#    global filterQuery
+#    global showfees
+#    global showuniv
+#    global showcity
+#    global showcountry
+#    global showduration
+#    global showdate
+    
+    global entity
+    
+    andText = ''
     filterQuery = ''
-    showuniv = False
-    showfees = False
-    showstructure = False
-    showcity = False
-    showcountry = False
-    showduration = False
-    showdate = False
-    outputColumns = '\'program_name\''
+    
+    if entity.cities != None and entity.cities != '':
+        filterQuery = filterQuery + andText + '(df["cityName"].str.lower().isin (['
+        filterQuery = filterQuery + entity.cities
+        filterQuery = filterQuery + ']))'
+        andText = ' & '
+        entity.showcity = True
+    
+    if entity.countries != None and entity.countries != '':
+        filterQuery = filterQuery + andText + '(df["country_name"].str.lower().isin (['
+        filterQuery = filterQuery + entity.countries
+        filterQuery = filterQuery + ']))'
+        andText = ' & '
+        entity.showcountry = True
+        
+    if (entity.date != None and entity.date != ''):
+        filterQuery = filterQuery + andText + '(df["start_date"] == "' + entity.date + '")'
+        andText = ' & '
+        entity.showdate = True
+    
+    if (entity.amount != None and entity.amount != [] and entity.amount != ''):
+        filterQuery = filterQuery + andText + '(df["tution_1_money"] == ' + entity.amount[0] + ')'
+        andText = ' & '
+        entity.showfees = True
+
+    if (entity.currency != None and entity.currency != [] and entity.currency != ''):
+        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency[0] + '")'
+        andText = ' & '
+        entity.showfees = True
+
+    if (entity.duration != None and entity.duration != [] and entity.duration != ''):
+        filterQuery = filterQuery + andText + '(df["durationInDays"] == ' + str(entity.duration) + ')'
+        andText = ' & '
+        entity.showduration = True
+    
+    return filterQuery
 
 ###################################################################################
 # Method to identify all the entities/sockets within the search
 ###################################################################################
 def findEntities(inpString):
-    global amount
-    global currency
-    global duration
-    global date
-    global cities
-    global countries
-    global filterQuery
-    global showfees
-    global showuniv
-    global showcity
-    global showcountry
-    global showduration
-    global showdate
-    
-    andText = ''
-    
-    loc = GeoText(inpString)
-    if  loc != None:
-        if loc.cities != None and loc.cities != []:
-            #filterQuery = filterQuery + andText + 'df["city"].isin (['
-            comma = ''
+#    global amount
+#    global currency
+#    global duration
+#    global date
+#    global cities
+#    global countries
+#    global filterQuery
+#    global showfees
+#    global showuniv
+#    global showcity
+#    global showcountry
+#    global showduration
+#    global showdate
+
+    global entity
+        
+    (locCities, locCountries) = findCitiesAndCountries(inpString)
+        
+    if locCities != None and locCities != []:
+        comma = ''
+        entity.cities = ''
             
-            #if cities != None and cities != '':
-            #    comma = ','
-            cities = ''
-                
-            for city in loc.cities:
-                #filterQuery = filterQuery + comma + '"' + city + '"'
-                cities = cities + comma + '"' + city + '"'
-                comma = ','
-            #filterQuery = filterQuery + '])'
-            #andText = ' & '
+        for city in locCities:
+            entity.cities = entity.cities + comma + '"' + city.lower() + '"'
+            comma = ','
             
-        if loc.countries != None and loc.countries != []:
-            #filterQuery = filterQuery + andText + 'df["country_name"].isin (['
-            comma = ''
-            #if countries != None and countries != '':
-            #    comma = ','
-            countries = ''
-            
-            for country in loc.countries:
-                #filterQuery = filterQuery + comma + '"' + country + '"'
-                countries = countries + comma + '"' + country + '"'
-                comma = ','
-            #filterQuery = filterQuery + '])'
-            #andText = ' & '
+    if locCountries != None and locCountries != []:
+        comma = ''
+        entity.countries = ''
+        
+        for country in locCountries:
+            entity.countries = entity.countries + comma + '"' + country.lower() + '"'
+            comma = ','
 
     localDate = findDate(inpString)
     if localDate != None:
-        date = localDate
+        entity.date = localDate
     
     localAmount = findAmount(inpString)
     if (localAmount != None and localAmount != []):
-        amount = localAmount
+        entity.amount = localAmount
         
     localCurrency = findCurrency(inpString)
     if (localCurrency != None and localCurrency != []):
-        currency = localCurrency
+        entity.currency = localCurrency
         
     localDuration = findDuration(inpString)
     if (localDuration != None and localDuration != []):
-        duration = localDuration
+        entity.duration = localDuration
 
-    filterQuery = ''
-    
-    if cities != None and cities != '':
-        filterQuery = filterQuery + andText + '(df["cityName"].isin (['
-        filterQuery = filterQuery + cities
-        filterQuery = filterQuery + ']))'
-        andText = ' & '
-        showcity = True
-    
-    if countries != None and countries != '':
-        filterQuery = filterQuery + andText + '(df["country_name"].isin (['
-        filterQuery = filterQuery + countries
-        filterQuery = filterQuery + ']))'
-        andText = ' & '
-        showcountry = True
-        
-    if (date != None and date != ''):
-        filterQuery = filterQuery + andText + '(df["start_date"] == "' + date + '")'
-        andText = ' & '
-        showdate = True
-    
-    if (amount != None and amount != [] and amount != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_money"] == ' + amount[0] + ')'
-        andText = ' & '
-        showfees = True
-
-    if (currency != None and currency != [] and currency != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + currency[0] + '")'
-        andText = ' & '
-        showfees = True
-
-    if (duration != None and duration != [] and duration != ''):
-        filterQuery = filterQuery + andText + '(df["durationInDays"] == ' + str(duration) + ')'
-        andText = ' & '
-        showduration = True
+    filterQuery = buildQuery()
     
     #print("CB: <<The student is searching for a course in ",loc.cities," city in ",loc.countries," with cost ",currency," ",amount, " and commencement date ", date, " with duration ", duration,">>")
     #print("CB: <<FilterQuery:", filterQuery,">>")
@@ -562,40 +639,42 @@ def findEntities(inpString):
 ###################################################################################
 def displayResults():
     global filterQuery
-    global outputColumns
-    global showuniv
-    global showfees
-    global showstructure
-    global showcity
-    global showcountry
-    global showduration
-    global showdate
+#    global outputColumns
+#    global showuniv
+#    global showfees
+#    global showstructure
+#    global showcity
+#    global showcountry
+#    global showduration
+#    global showdate
+
+    global entity
     
-    outputColumns = '\'program_name\''
+    entity.outputColumns = '\'program_name\''
     
-    if showcity == True:
-        outputColumns = outputColumns + ',' + '\'cityName\''
+    if entity.showcity == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'cityName\''
     
-    if showcountry == True:
-        outputColumns = outputColumns + ',' + '\'country_name\''
+    if entity.showcountry == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'country_name\''
         
-    if showduration == True:
-        outputColumns = outputColumns + ',' + '\'duration\''
+    if entity.showduration == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'duration\''
         
-    if showdate == True:
-        outputColumns = outputColumns + ',' + '\'start_date\''
+    if entity.showdate == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'start_date\''
         
-    if showfees == True:
-        outputColumns = outputColumns + ',' + '\'tution_1_currency\',\'tution_1_money\''
+    if entity.showfees == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'tution_1_currency\',\'tution_1_money\''
         
-    if showuniv == True:
-        outputColumns = outputColumns + ',' + '\'university_name\''
+    if entity.showuniv == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'university_name\''
         
-    if showstructure == True:
-        outputColumns = outputColumns + ',' + '\'structure\''
+    if entity.showstructure == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'structure\''
         
     if filterQuery != '':
-        filterQueryExec = 'data = df['+filterQuery+'][['+outputColumns+']]'
+        filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
         print(filterQueryExec)
         exec(filterQueryExec)
         if (len(data) == 0):
@@ -627,6 +706,7 @@ for idx,d in enumerate(df['duration']):
     else:
         durationInDays.append(to_number(0))
 
+# Create new column "durationInDays" and add to dataset
 df = df.assign(durationInDays=durationInDays)
 
 ########################################
@@ -644,10 +724,9 @@ for idx,c in enumerate(df['city']):
             cityName.append(c) # whatever is in the column
     else:
         cityName.append(c) # whatever is in the column
-        
-df = df.assign(cityName=cityName)
 
-randomResultSize=20
+# Create new column "cityName" and add to dataset        
+df = df.assign(cityName=cityName)
 
 # Greet user
 lstGreetings = ["Hello!","Hi There!","Hi! How are you doing today?","Welcome to my world!","Namastey!"]
