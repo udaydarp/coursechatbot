@@ -6,6 +6,9 @@ import numpy as np
 import nltk
 from nltk.tokenize import sent_tokenize
 import pandas as pd
+from nltk.corpus import stopwords
+from datetime import datetime
+
 #from nltk.corpus import wordnet as wn
 
 nltk.download('corpora/wordnet')
@@ -261,6 +264,7 @@ class Entity(object):
     currency = ''
     duration = ''
     date = ''
+    dateCompOp = '=='
     cities = ''
     countries = ''
     filterQuery = ''
@@ -278,6 +282,7 @@ class Entity(object):
         self.currency = ''
         self.duration = ''
         self.date = ''
+        self.dateCompOp = '=='
         self.cities = ''
         self.countries = ''
         self.filterQuery = ''
@@ -328,59 +333,95 @@ def getNumericMonth(month):
 #getNumericMonth('12')
 
 ###################################################################################
-# Find date entered in text and return y-m-d format
+# Method to determine comparison operator based on entered text
+###################################################################################
+def getComparisonOperator(notString, prefixString):
+    notString = notString.lower()
+    prefixString = prefixString.lower()
+    
+    if prefixString == 'before' or prefixString == 'earlier than':
+        if notString == 'not':
+            return '>'
+        else:
+            return '<'
+    elif prefixString == 'after' or prefixString == 'later than':
+        if notString == 'not':
+            return '<'
+        else:
+            return '>'
+    else:
+        return '=='
+
+###################################################################################
+# Find date entered in text and return y-m-d format along with comparison operator
 ###################################################################################
 def findDate(inpString):
     day = ''
     month = ''
     year = ''
+    notString = ''
+    prefixString = ''
+    
     # check for dmy format
-    datePattern = re.compile(r'(([1-9]|[0][1-9]|[1-2][0-9]|[3][0-1])[ \./-](Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December|[0]*[1-9]|[1][0-2])[ \./-](\d{4}))')
+    sepPat = '[ \./-]'
+    dayPat = '[1-9]|[0][1-9]|[1-2][0-9]|[3][0-1]'
+    monthPat = 'Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December|[0]*[1-9]|[1][0-2]'
+    yearPat = '\d{4}'
+    notPat = 'not'
+    prefixPat = 'before|after|by|on|earlier than|later than'
+    
+    datePattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+dayPat+')'+sepPat+'('+monthPat+')'+sepPat+'('+yearPat+'))')
     validDate = datePattern.findall(inpString)
     
     if (validDate == None or validDate == []):
         # check for ymd format
-        datePattern = re.compile(r'((\d{4})[ \./-]([0]*[1-9]|[1][0-2])[ \./-]([0]*[1-9]|[1-2][0-9]|[3][0-1]))')
+        datePattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+yearPat+')'+sepPat+'('+monthPat+')'+sepPat+'('+dayPat+'))')
         validDate = datePattern.findall(inpString)
     
         if (validDate == None or validDate == []):
             # check for month year format
-            datePattern = re.compile(r'((Jan|Feb|Mar|Apr|May|Jun|July|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)[ \./-](\d{4}))')
+            datePattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+monthPat+')'+sepPat+'('+yearPat+'))')
             validDate = datePattern.findall(inpString)
             if (validDate != None and validDate != []):
                 # valid month-year date
                 print("my:",validDate)
                 day = '01'
-                month = validDate[0][1]
-                year = validDate[0][2]
+                notString = validDate[0][1]
+                prefixString = validDate[0][2]
+                month = validDate[0][3]
+                year = validDate[0][4]
         else:
             # valid ymd date
             print("ymd:",validDate)
-            year = validDate[0][1]
-            month = validDate[0][2]
-            day = validDate[0][3]
+            notString = validDate[0][1]
+            prefixString = validDate[0][2]
+            year = validDate[0][3]
+            month = validDate[0][4]
+            day = validDate[0][5]
     else:
         # valid dmy date
         print("dmy:",validDate)
-        day = validDate[0][1]
-        month = validDate[0][2]
-        year = validDate[0][3]
+        notString = validDate[0][1]
+        prefixString = validDate[0][2]
+        day = validDate[0][3]
+        month = validDate[0][4]
+        year = validDate[0][5]
         
+        print("Not and Prefix:", notString, prefixString)
     if (validDate == None or validDate == []):
         #print('No valid date in:',inpString)
-        return None
+        return None, None
     else:
         #print('Valid date found:', validDate)
         #return validDate[0][0]
         
         #return date in y-m-d format
         numMonth = getNumericMonth(month)
-        return year + "-" + numMonth + "-" + day
-
+        return getComparisonOperator(notString, prefixString), (year + "-" + numMonth + "-" + day)
 #findDate("before 01 Jan 2018")
-#findDate("before May 2018")
-#findDate("before 05-Nov-2018")
-#findDate("before 2018-03-31")
+#findDate("not before May 2018")
+#findDate("not earlier than 05-Nov-2018")
+#findDate("not later than 2018-03-31")
 #findDate("after 5 August 2018")
 
 ###################################################################################
@@ -435,7 +476,7 @@ def findCitiesAndCountries(inpString):
     
     locCities = []
     locCountries = []
-    
+
     loc = GeoText(inpString)
         
     if loc != None:
@@ -451,22 +492,24 @@ def findCitiesAndCountries(inpString):
     
     if not cityFound or not countryFound:
         # split string into individual words, make camel case and check again
+        stop_words = set(stopwords.words('english'))
+        stop_words.remove('not')
+        
         for w in inpString.split():
             w = w.capitalize()
-            print(w)
-            loc = GeoText(w)
-            print(loc)
-            
-            if loc != None:
-                if cityFound == False and loc.cities != None and loc.cities != []:
-
-                    for city in loc.cities:
-                        locCities.append(city)
-                    
-                if countryFound == False and loc.countries != None and loc.countries != []:
-                    
-                    for country in loc.countries:
-                        locCountries.append(country)
+            if not w.lower() in stop_words:
+                loc = GeoText(w)
+                
+                if loc != None:
+                    if cityFound == False and loc.cities != None and loc.cities != []:
+    
+                        for city in loc.cities:
+                            locCities.append(city)
+                        
+                    if countryFound == False and loc.countries != None and loc.countries != []:
+                        
+                        for country in loc.countries:
+                            locCountries.append(country)
     
     return locCities, locCountries
 
@@ -479,60 +522,15 @@ entity = Entity()
 ###################################################################################
 # Method to initialize the global variables on every search error to reset the data
 ###################################################################################
-def clearEntities():
-#    global amount
-#    global currency
-#    global duration
-#    global date
-#    global cities
-#    global countries
-#    global filterQuery
-#    global outputColumns
-#    global showuniv
-#    global showfees
-#    global showstructure
-#    global showcity
-#    global showcountry
-#    global showduration
-#    global showdate
-    
+def clearEntities():    
     global entity
     
     entity.__init__()
-    #amount = ''
-    #currency = ''
-    #duration = ''
-    #date = ''
-    #cities = ''
-    #countries = ''
-    #filterQuery = ''
-    #showuniv = False
-    #showfees = False
-    #showstructure = False
-    #showcity = False
-    #showcountry = False
-    #showduration = False
-    #showdate = False
-    #outputColumns = '\'program_name\''
 
 ##################################################################
 # Method to build dataset query
 ##################################################################
-def buildQuery():
-#    global amount
-#    global currency
-#    global duration
-#    global date
-#    global cities
-#    global countries
-#    global filterQuery
-#    global showfees
-#    global showuniv
-#    global showcity
-#    global showcountry
-#    global showduration
-#    global showdate
-    
+def buildQuery():    
     global entity
     
     andText = ''
@@ -553,7 +551,7 @@ def buildQuery():
         entity.showcountry = True
         
     if (entity.date != None and entity.date != ''):
-        filterQuery = filterQuery + andText + '(df["start_date"] == "' + entity.date + '")'
+        filterQuery = filterQuery + andText + '(df["start_date_conv"] '+ entity.dateCompOp + '"' + entity.date + '")'
         andText = ' & '
         entity.showdate = True
     
@@ -578,20 +576,6 @@ def buildQuery():
 # Method to identify all the entities/sockets within the search
 ###################################################################################
 def findEntities(inpString):
-#    global amount
-#    global currency
-#    global duration
-#    global date
-#    global cities
-#    global countries
-#    global filterQuery
-#    global showfees
-#    global showuniv
-#    global showcity
-#    global showcountry
-#    global showduration
-#    global showdate
-
     global entity
         
     (locCities, locCountries) = findCitiesAndCountries(inpString)
@@ -603,6 +587,7 @@ def findEntities(inpString):
         for city in locCities:
             entity.cities = entity.cities + comma + '"' + city.lower() + '"'
             comma = ','
+            entity.showcity = True
             
     if locCountries != None and locCountries != []:
         comma = ''
@@ -611,22 +596,28 @@ def findEntities(inpString):
         for country in locCountries:
             entity.countries = entity.countries + comma + '"' + country.lower() + '"'
             comma = ','
+            entity.showcountry = True
 
-    localDate = findDate(inpString)
+    (locDateCompOp, localDate) = findDate(inpString)
     if localDate != None:
         entity.date = localDate
+        entity.dateCompOp = locDateCompOp
+        entity.showdate = True
     
     localAmount = findAmount(inpString)
     if (localAmount != None and localAmount != []):
         entity.amount = localAmount
+        entity.showfees = True
         
     localCurrency = findCurrency(inpString)
     if (localCurrency != None and localCurrency != []):
         entity.currency = localCurrency
+        entity.showfees = True
         
     localDuration = findDuration(inpString)
     if (localDuration != None and localDuration != []):
         entity.duration = localDuration
+        entity.showduration = True
 
     filterQuery = buildQuery()
     
@@ -639,16 +630,8 @@ def findEntities(inpString):
 ###################################################################################
 def displayResults():
     global filterQuery
-#    global outputColumns
-#    global showuniv
-#    global showfees
-#    global showstructure
-#    global showcity
-#    global showcountry
-#    global showduration
-#    global showdate
-
     global entity
+    filterQueryExec = ''
     
     entity.outputColumns = '\'program_name\''
     
@@ -728,6 +711,24 @@ for idx,c in enumerate(df['city']):
 # Create new column "cityName" and add to dataset        
 df = df.assign(cityName=cityName)
 
+################################################
+# Convert date from string into datetime object.
+################################################
+start_date_conv = []
+for idx,d in enumerate(df['start_date']):
+    objDate = None
+    if (isinstance(d, str)):
+        objDate = datetime.strptime(d.strip(), '%Y-%m-%d %H:%M:%S')
+        if (objDate != None):
+            start_date_conv.append(objDate)
+        else:
+            start_date_conv.append(None)
+    else:
+        start_date_conv.append(None)
+
+# Create new column "cityName" and add to dataset        
+df = df.assign(start_date_conv = start_date_conv)
+
 # Greet user
 lstGreetings = ["Hello!","Hi There!","Hi! How are you doing today?","Welcome to my world!","Namastey!"]
 print("CB:",lstGreetings[np.random.randint(0,len(lstGreetings))])
@@ -744,7 +745,7 @@ while (True):
         elif intent.intentType == 'search':
             print ("CB: ", intent.response)
             filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+'][['+outputColumns+']]'
+            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
             print(filterQueryExec)
             exec(filterQueryExec)
             resultSize = len(data)
@@ -766,13 +767,25 @@ while (True):
         elif intent.intentType == 'restart':
             print ("CB: ", intent.response)
         elif intent.intentType == 'structure':
-            showstructure = True
+            filterQuery = findEntities(response)
+            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
+            print(filterQueryExec)
+            exec(filterQueryExec)
+            entity.showstructure = True
             displayResults()
         elif intent.intentType == 'showfees':
-            showfees = True
+            filterQuery = findEntities(response)
+            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
+            print(filterQueryExec)
+            exec(filterQueryExec)
+            entity.showfees = True
             displayResults()
         elif intent.intentType == 'univs':
-            showunivs = True
+            filterQuery = findEntities(response)
+            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
+            print(filterQueryExec)
+            exec(filterQueryExec)
+            entity.showunivs = True
             displayResults()
         else:
             print ("CB: I cant understand your intent :(! Please have a human communicate with me!")
@@ -792,4 +805,5 @@ print("CB: It was nice talking to you! Have a good day! If you like me, give me 
 #df[df[df["cityName"].isin (["Mumbai"])]['durationInDays']==to_number(540)]['program_name']
 #df['durationInDays']==12
 # df[(df["country_name"].isin (["India"])) & (df["durationInDays"] == 540)][['program_name','country_name','duration','university_name','tution_1_currency','tution_1_money']]
+#df[(df["cityName"].str.lower().isin (["mumbai"])) & (df["start_date_conv"] <"1919-01-01")]
 ###################################################################################
