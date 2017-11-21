@@ -261,8 +261,10 @@ def identifyIntents (response):
 ##################################################
 class Entity(object):
     amount = ''
+    amountCompOp = '=='
     currency = ''
     duration = ''
+    durationCompOp = '=='
     date = ''
     dateCompOp = '=='
     cities = ''
@@ -279,8 +281,10 @@ class Entity(object):
     
     def __init__(self):
         self.amount = ''
+        self.amountCompOp = '=='
         self.currency = ''
         self.duration = ''
+        self.durationCompOp = '=='
         self.date = ''
         self.dateCompOp = '=='
         self.cities = ''
@@ -326,6 +330,7 @@ def getNumericMonth(month):
         strMonth = month.lower()[0:3]
         return month_dict[strMonth]
 
+# Tests:
 #getNumericMonth('01')
 #getNumericMonth('1')
 #getNumericMonth('jan')
@@ -339,12 +344,12 @@ def getComparisonOperator(notString, prefixString):
     notString = notString.lower()
     prefixString = prefixString.lower()
     
-    if prefixString == 'before' or prefixString == 'earlier than':
+    if prefixString == 'before' or prefixString == 'earlier than' or prefixString == 'less than' or prefixString == 'under' or prefixString == 'below':
         if notString == 'not':
             return '>'
         else:
             return '<'
-    elif prefixString == 'after' or prefixString == 'later than':
+    elif prefixString == 'after' or prefixString == 'later than' or prefixString == 'greater than' or prefixString == 'more than' or prefixString == 'above':
         if notString == 'not':
             return '<'
         else:
@@ -418,6 +423,8 @@ def findDate(inpString):
         #return date in y-m-d format
         numMonth = getNumericMonth(month)
         return getComparisonOperator(notString, prefixString), (year + "-" + numMonth + "-" + day)
+
+# Tests:
 #findDate("before 01 Jan 2018")
 #findDate("not before May 2018")
 #findDate("not earlier than 05-Nov-2018")
@@ -428,10 +435,28 @@ def findDate(inpString):
 # Find amount entered (comma separated, non-comma separated
 ###################################################################################
 def findAmount(inpString):
-    amountPattern = re.compile(r'[^ ][\d]+[,\.\d]*(^month|day|year)[$ ]')
-    amount=amountPattern.findall(inpString)
-    #print(amount)
-    return amount
+    notPat = 'not'
+    prefixPat = 'less than|more than|under|above|below'
+    amountPat = '[\d]+[,\.\d]*(?!month|year|day)'
+    
+    amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+amountPat+'))')
+    amountValue = amountPattern.findall(inpString)
+    
+    print("Pattern:", amountPattern)
+    print("Value:", amountValue)
+    
+    if amountValue == None or amountValue == []:
+        return None, None
+    
+    print ("AmountValue:", amountValue)
+    notString = amountValue[0][1]
+    prefixString = amountValue[0][2]
+    compOperator = getComparisonOperator(notString, prefixString)
+    
+    amount = amountValue[0][3]
+    
+    print ("notString:", notString, "prefixString:", prefixString, "compOperator:", compOperator,"amount:", amount)
+    return compOperator, amount
 
 ###################################################################################
 # Find currency entered in text ($s and Rs only as of now)
@@ -440,21 +465,35 @@ def findCurrency(inpString):
     currencyPattern=re.compile(r'[$₹]|inr|usd|Rs\.*|rupees|dollars')
     currency=currencyPattern.findall(inpString.lower())
     #print(currency)
-    return currency
+    if currency == None or currency == []:
+        return None
+    
+    return currency[0]
 
 ###################################################################################
 # Check for duration entered and convert the figure to days
 # Here 1 month = 30 days, 1 year = 360 days
 ###################################################################################
 def findDuration(inpString):
-    durationPattern=re.compile(r'(\d+) *(month|year|day)')
+    notPat = 'not'
+    prefixPat = 'more than|greater than|less than'
+    numDurationPat = '\d+'
+    unitDurationPat = 'month|year|day'
+    
+    durationPattern=re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')[ ]*('+numDurationPat+')[ ]*('+unitDurationPat+'))')
     duration=durationPattern.findall(inpString.lower())
     
     if duration == None or duration == '' or duration == []:
-        return None
+        return None, None
     
-    numValue = duration[0][0]
-    unitValue = duration[0][1]
+    notString = duration[0][1]
+    prefixString = duration[0][2]
+    numValue = duration[0][3]
+    unitValue = duration[0][4]
+    
+    print (duration, "|", notString, "|", prefixString, "|", numValue, "|", unitValue)
+    
+    compOperator = getComparisonOperator(notString, prefixString)
     
     durationInDays = int(numValue)
     
@@ -465,7 +504,7 @@ def findDuration(inpString):
     else:
         durationInDays = durationInDays * 360
         
-    return durationInDays
+    return compOperator, durationInDays
 
 ###################################################################################
 # Method to identify cities and countries in a text
@@ -551,22 +590,22 @@ def buildQuery():
         entity.showcountry = True
         
     if (entity.date != None and entity.date != ''):
-        filterQuery = filterQuery + andText + '(df["start_date_conv"] '+ entity.dateCompOp + '"' + entity.date + '")'
+        filterQuery = filterQuery + andText + '(df["start_date_conv"] ' + entity.dateCompOp + '"' + entity.date + '")'
         andText = ' & '
         entity.showdate = True
     
     if (entity.amount != None and entity.amount != [] and entity.amount != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_money"] == ' + entity.amount[0] + ')'
+        filterQuery = filterQuery + andText + '(df["tution_1_money"] ' + entity.amountCompOp + ' ' + entity.amount + ')'
         andText = ' & '
         entity.showfees = True
 
     if (entity.currency != None and entity.currency != [] and entity.currency != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency[0] + '")'
+        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
         andText = ' & '
         entity.showfees = True
 
     if (entity.duration != None and entity.duration != [] and entity.duration != ''):
-        filterQuery = filterQuery + andText + '(df["durationInDays"] == ' + str(entity.duration) + ')'
+        filterQuery = filterQuery + andText + '(df["durationInDays"] ' + entity.durationCompOp + ' ' + str(entity.duration) + ')'
         andText = ' & '
         entity.showduration = True
     
@@ -604,9 +643,10 @@ def findEntities(inpString):
         entity.dateCompOp = locDateCompOp
         entity.showdate = True
     
-    localAmount = findAmount(inpString)
+    (localAmountCompOp, localAmount) = findAmount(inpString)
     if (localAmount != None and localAmount != []):
         entity.amount = localAmount
+        entity.amountCompOp = localAmountCompOp
         entity.showfees = True
         
     localCurrency = findCurrency(inpString)
@@ -614,9 +654,10 @@ def findEntities(inpString):
         entity.currency = localCurrency
         entity.showfees = True
         
-    localDuration = findDuration(inpString)
+    (localDurationCompOp, localDuration) = findDuration(inpString)
     if (localDuration != None and localDuration != []):
         entity.duration = localDuration
+        entity.durationCompOp = localDurationCompOp
         entity.showduration = True
 
     filterQuery = buildQuery()
@@ -629,7 +670,6 @@ def findEntities(inpString):
 # Method to display results of the search
 ###################################################################################
 def displayResults():
-    global filterQuery
     global entity
     filterQueryExec = ''
     
@@ -655,7 +695,9 @@ def displayResults():
         
     if entity.showstructure == True:
         entity.outputColumns = entity.outputColumns + ',' + '\'structure\''
-        
+    
+    filterQuery = buildQuery()
+    
     if filterQuery != '':
         filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
         print(filterQueryExec)
@@ -766,6 +808,7 @@ while (True):
             stopSearch = True
         elif intent.intentType == 'restart':
             print ("CB: ", intent.response)
+            clearEntities()
         elif intent.intentType == 'structure':
             filterQuery = findEntities(response)
             filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
