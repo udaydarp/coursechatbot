@@ -47,6 +47,10 @@ training_data.append({"class":"search", "sentence":"are there any commencing aft
 training_data.append({"class":"search", "sentence":"i want list of programs with fees 100000 rs"})
 training_data.append({"class":"search", "sentence":"i need list of courses taught in carnegie mellon university"})
 training_data.append({"class":"search", "sentence":"i need list of programs conducted by new york university"})
+training_data.append({"class":"search", "sentence":"i am looking for courses with ranking less than 50"})
+training_data.append({"class":"search", "sentence":"top ranked courses"})
+training_data.append({"class":"search", "sentence":"i want list of top ranked courses"})
+training_data.append({"class":"search", "sentence":"i want list of top 50 courses"})
 
 training_data.append({"class":"view", "sentence":"display the courses"})
 training_data.append({"class":"view", "sentence":"show me the list of courses"})
@@ -74,10 +78,16 @@ training_data.append({"class":"showfees", "sentence":"how much does it cost?"})
 training_data.append({"class":"showfees", "sentence":"what do i need to pay?"})
 training_data.append({"class":"showfees", "sentence":"what amount do i pay?"})
 training_data.append({"class":"showfees", "sentence":"does it cost a bomb?"})
+training_data.append({"class":"showfees", "sentence":"show me the fees"})
+training_data.append({"class":"showfees", "sentence":"show me the program fees"})
+training_data.append({"class":"showfees", "sentence":"show me the course fees"})
 
 training_data.append({"class":"structure", "sentence":"what is the course structure?"})
 training_data.append({"class":"structure", "sentence":"what are the modules?"})
 training_data.append({"class":"structure", "sentence":"what is the course schedule?"})
+training_data.append({"class":"structure", "sentence":"show me the structure"})
+training_data.append({"class":"structure", "sentence":"show me the program structure"})
+training_data.append({"class":"structure", "sentence":"show me the course structure"})
 
 training_data.append({"class":"univs", "sentence":"which universities offer the courses?"})
 training_data.append({"class":"univs", "sentence":"which universities offer the programs?"})
@@ -128,6 +138,10 @@ training_data.append({"class":"univs", "sentence":"list of schools that conduct 
 training_data.append({"class":"univs", "sentence":"list of schools that have the courses"})
 training_data.append({"class":"univs", "sentence":"list of schools that have the programs"})
 
+training_data.append({"class":"showrank", "sentence":"show me the rankings"})
+training_data.append({"class":"showrank", "sentence":"how are they ranked"})
+training_data.append({"class":"showrank", "sentence":"what are the rankings"})
+
 training_data.append({"class":"restart", "sentence":"no that is not what i was looking for"})
 training_data.append({"class":"restart", "sentence":"no"})
 training_data.append({"class":"restart", "sentence":"no i didnt want that"})
@@ -140,6 +154,11 @@ training_data.append({"class":"aboutme", "sentence":"whats your name?"})
 training_data.append({"class":"aboutme", "sentence":"why are you named cb?"})
 training_data.append({"class":"aboutme", "sentence":"what can you help me with?"})
 training_data.append({"class":"aboutme", "sentence":"how much course data you have?"})
+
+training_data.append({"class":"showdebug", "sentence":"show me debug"})
+training_data.append({"class":"showdebug", "sentence":"debug"})
+training_data.append({"class":"showdebug", "sentence":"turn on debug"})
+training_data.append({"class":"showdebug", "sentence":"start debugging"})
 
 # print ("%s sentences of training data" % len(training_data))
 
@@ -156,7 +175,7 @@ for c in classes:
 for data in training_data:
     # tokenize each sentence into words
     for word in nltk.word_tokenize(data['sentence']):
-        # ignore a some things
+        # ignore some things
         if word not in ["?", "'s"]:
             # stem and lowercase each word
             stemmed_word = stemmer.stem(word.lower())
@@ -199,29 +218,6 @@ class Intent(object):
 def splitText(inputText):
     return sent_tokenize(inputText)
 
-# Method to show some dynamic text in relation to intentType
-def getIntentResponse(intentType):
-    if (intentType == 'greeting'):
-        return '*** Greets me back ***'
-    elif (intentType == 'search'):
-        return '*** Searching... ***'
-    elif (intentType == 'stop'):
-        return '*** Phew! Done for the day! ***'
-    elif (intentType == 'restart'):
-        return '*** Back to square one! ***'
-    elif (intentType == 'univs'):
-        return '*** Fetching universities ***'
-    elif (intentType == 'showfees'):
-        return '*** Fetching fees ***'
-    elif (intentType == 'structure'):
-        return '*** Fetching course structure ***'
-    elif (intentType == 'view'):
-        return '*** Showtime! ***'
-    elif (intentType == 'aboutme'):
-        return '*** Now I can brag! ;) ***'
-    else:
-        return '*** Thinking ***'
-        
 # Method to use machine learning techniques to check intent
 def getIntent(inputText):
     high_class = None
@@ -242,6 +238,32 @@ def getIntent(inputText):
     intent.filterQuery = 'df["country_name"]=="India"'
     return intent
 
+# Method to show some dynamic text in relation to intentType
+def getIntentResponse(intentType):
+    if (intentType == 'greeting'):
+        return '*** Greets me back ***'
+    elif (intentType == 'search'):
+        return '*** Searching... ***'
+    elif (intentType == 'stop'):
+        return '*** Phew! Done for the day! ***'
+    elif (intentType == 'restart'):
+        return '*** Back to square one! ***'
+    elif (intentType == 'univs'):
+        return '*** Fetching universities ***'
+    elif (intentType == 'showfees'):
+        return '*** Fetching fees ***'
+    elif (intentType == 'showrank'):
+        return '*** Fetching rankings ***'
+    elif (intentType == 'showdebug'):
+        return '*** Turning on debug ***'
+    elif (intentType == 'structure'):
+        return '*** Fetching course structure ***'
+    elif (intentType == 'view'):
+        return '*** Showtime! ***'
+    elif (intentType == 'aboutme'):
+        return '*** Now I can brag! ;) ***'
+    else:
+        return '*** Thinking ***'
 
 # Method to identify intents from a user response
 def identifyIntents (response):
@@ -267,12 +289,13 @@ class Entity(object):
     durationCompOp = '=='
     date = ''
     dateCompOp = '=='
+    rank = 1000
     cities = ''
     countries = ''
-    filterQuery = ''
     showuniv = False
     showfees = False
     showstructure = False
+    showrank = False
     showcity = False
     showcountry = False
     showduration = False
@@ -287,17 +310,42 @@ class Entity(object):
         self.durationCompOp = '=='
         self.date = ''
         self.dateCompOp = '=='
+        self.rank = 1000
         self.cities = ''
         self.countries = ''
-        self.filterQuery = ''
         self.showuniv = False
         self.showfees = False
         self.showstructure = False
+        self.showrank = False
         self.showcity = False
         self.showcountry = False
         self.showduration = False
         self.showdate = False
         self.outputColumns = '\'program_name\''
+        
+    def dump(self):
+        print("*************************************************")
+        print("Entity object:")
+        print("Amount:", self.amount)
+        print("AmountCompOp:", self.amountCompOp)
+        print("Currency:", self.currency)
+        print("Duration:", self.duration)
+        print("DurationCompOp:", self.durationCompOp)
+        print("Date:", self.date)
+        print("DateCompOp:", self.dateCompOp)
+        print("Rank:", self.rank)
+        print("Cities:", self.cities)
+        print("Countries:", self.countries)
+        print("ShowUniv:", self.showuniv)
+        print("ShowFees:", self.showfees)
+        print("ShowStructure:", self.showstructure)
+        print("ShowRank:", self.showrank)
+        print("ShowCity:", self.showcity)
+        print("ShowCountry:", self.showcountry)
+        print("ShowDuration:", self.showduration)
+        print("ShowDate:", self.showdate)
+        print("OutputColumns:", self.outputColumns)
+        print("*************************************************")
     
 def to_number(s):
     try:
@@ -437,25 +485,22 @@ def findDate(inpString):
 def findAmount(inpString):
     notPat = 'not'
     prefixPat = 'less than|more than|under|above|below'
-    amountPat = '[\d]+[,\.\d]*(?!month|year|day)'
+    amountPat = '[\d]+[,\.\d]*(?!month|year|day|months|years|days)'
     
     amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+amountPat+'))')
     amountValue = amountPattern.findall(inpString)
     
-    print("Pattern:", amountPattern)
-    print("Value:", amountValue)
-    
-    if amountValue == None or amountValue == []:
+    if amountValue == None or amountValue == [] or amountValue == '':
         return None, None
     
-    print ("AmountValue:", amountValue)
+    #print ("AmountValue:", amountValue)
     notString = amountValue[0][1]
     prefixString = amountValue[0][2]
     compOperator = getComparisonOperator(notString, prefixString)
     
     amount = amountValue[0][3]
     
-    print ("notString:", notString, "prefixString:", prefixString, "compOperator:", compOperator,"amount:", amount)
+    #print ("notString:", notString, "prefixString:", prefixString, "compOperator:", compOperator,"amount:", amount)
     return compOperator, amount
 
 ###################################################################################
@@ -491,7 +536,7 @@ def findDuration(inpString):
     numValue = duration[0][3]
     unitValue = duration[0][4]
     
-    print (duration, "|", notString, "|", prefixString, "|", numValue, "|", unitValue)
+    #print (duration, "|", notString, "|", prefixString, "|", numValue, "|", unitValue)
     
     compOperator = getComparisonOperator(notString, prefixString)
     
@@ -552,19 +597,81 @@ def findCitiesAndCountries(inpString):
     
     return locCities, locCountries
 
+##################################################################
+# Method to detect if ranking has been specified in the search
+##################################################################
+def findRanking(inpString):
+    topString = ''
+    strRank = ''
+    numRank1 = ''
+    numRank2 = ''
+    rankPattern = re.compile(r'(((top)+[ ]*([\d]*)(ranked|ranking|rank)*)|((ranking|ranked|rank)+[A-Za-z ]*([\d]*)))')
+    #rankPattern = re.compile(r'([A-Za-z(?!top)]*)')
+    
+    rank = rankPattern.findall(inpString)
+    
+    #print(rank)
+    if rank == None or rank == []:
+        return None
+    else:
+        if rank[0][1] != '':
+            topString = rank[0][2]
+            numRank1 = rank[0][3]
+            strRank = rank[0][4]
+            numRank2 = rank[0][5]
+        else:
+            strRank = rank[0][6]
+            numRank2 = rank[0][7]
+            
+        if topString != None and topString != '':
+                if strRank != None and strRank != '':
+                    if numRank1 == None or numRank1 == '' or numRank1 == []:
+                        numRank1 = 10 # top-10
+                    
+        if numRank1 != None and numRank1 != '' and numRank1 != []:
+            return numRank1
+        else:
+            return numRank2
+
+#findRanking("top ranked")
+#findRanking("  top ranked  ")
+#findRanking("i am looking for top ranked courses")
+#findRanking("top 20 rank")
+#findRanking(" ranking less than 50")
+        
 ###################################################################################
 # Global variables. Reference as "global" in the methods that you use them
 ###################################################################################
 
 entity = Entity()
+prev_entity = entity
+bot_name = 'N.I.C.E.'
+bot_full_name = '"Naturally" Intelligent Chatbot for Educational courses'
+showdebug = False
     
 ###################################################################################
 # Method to initialize the global variables on every search error to reset the data
 ###################################################################################
 def clearEntities():    
     global entity
-    
-    entity.__init__()
+    global prev_entity
+
+    if showdebug:
+        print("DBG: Clearing:", entity.dump())
+        print("DBG: Setting entity to:", prev_entity.dump())
+    entity = prev_entity
+    prev_entity.__init__()
+
+###################################################################################
+# Method to go backup a successfully executed entity
+###################################################################################
+def saveEntity():
+    global entity
+    global prev_entity
+
+    if showdebug:
+        print("DBG: Saving:", entity.dump())
+    prev_entity = entity
 
 ##################################################################
 # Method to build dataset query
@@ -581,6 +688,8 @@ def buildQuery():
         filterQuery = filterQuery + ']))'
         andText = ' & '
         entity.showcity = True
+        if showdebug:
+            print("DBG:showcity:", entity.showcity)
     
     if entity.countries != None and entity.countries != '':
         filterQuery = filterQuery + andText + '(df["country_name"].str.lower().isin (['
@@ -595,10 +704,17 @@ def buildQuery():
         entity.showdate = True
     
     if (entity.amount != None and entity.amount != [] and entity.amount != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_money"] ' + entity.amountCompOp + ' ' + entity.amount + ')'
+        filterQuery = filterQuery + andText + '(df["tution_1_money"] ' + entity.amountCompOp + ' ' + entity.amount + ')'        
         andText = ' & '
         entity.showfees = True
 
+    # Default value of rank = 1000 means no rank check required
+    # Comparison will always be 'less than' entered value
+    if (entity.rank != None and entity.rank != [] and entity.rank != '' and entity.rank != 1000):
+        filterQuery = filterQuery + andText + '(df["university_rank"] < '+ str(entity.rank) + ')'
+        andText = ' & '
+        entity.showrank = True
+        
     if (entity.currency != None and entity.currency != [] and entity.currency != ''):
         filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
         andText = ' & '
@@ -609,6 +725,11 @@ def buildQuery():
         andText = ' & '
         entity.showduration = True
     
+    setOutputColumns()
+    
+    if showdebug:
+        print("DBG:buildQuery:",filterQuery)
+        
     return filterQuery
 
 ###################################################################################
@@ -627,6 +748,8 @@ def findEntities(inpString):
             entity.cities = entity.cities + comma + '"' + city.lower() + '"'
             comma = ','
             entity.showcity = True
+            if showdebug == True:
+                print("DBG:showcity:", entity.showcity)
             
     if locCountries != None and locCountries != []:
         comma = ''
@@ -649,6 +772,11 @@ def findEntities(inpString):
         entity.amountCompOp = localAmountCompOp
         entity.showfees = True
         
+    locRank = findRanking(inpString)
+    if locRank != None and locRank != [] and locRank != '':
+        entity.rank = locRank
+        entity.showrank = True
+        
     localCurrency = findCurrency(inpString)
     if (localCurrency != None and localCurrency != []):
         entity.currency = localCurrency
@@ -662,16 +790,15 @@ def findEntities(inpString):
 
     filterQuery = buildQuery()
     
+    if showdebug:
+        print("DBG:findEntities:",filterQuery)
+        
     #print("CB: <<The student is searching for a course in ",loc.cities," city in ",loc.countries," with cost ",currency," ",amount, " and commencement date ", date, " with duration ", duration,">>")
     #print("CB: <<FilterQuery:", filterQuery,">>")
     return filterQuery
 
-###################################################################################
-# Method to display results of the search
-###################################################################################
-def displayResults():
+def setOutputColumns():
     global entity
-    filterQueryExec = ''
     
     entity.outputColumns = '\'program_name\''
     
@@ -695,24 +822,62 @@ def displayResults():
         
     if entity.showstructure == True:
         entity.outputColumns = entity.outputColumns + ',' + '\'structure\''
-    
-    filterQuery = buildQuery()
-    
-    if filterQuery != '':
-        filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-        print(filterQueryExec)
-        exec(filterQueryExec)
-        if (len(data) == 0):
-            print("CB: Sorry I did not find any courses matching your search :(. Try again")
-            clearEntities()
-        else:
-            print("CB:I found ", len(data), " courses:")
-            print(data)
+        
+    if entity.showrank == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'university_rank\''
+        
+###################################################################################
+# Method to display results of the search
+###################################################################################
+def displayResults():
+    global entity
+    global bot_name
+        
+    results=''
+    filterQueryToExecute = ''
+    dummyfilterQuery = 'data=df[(df["country_name"].isin(["India"]))]["program_name"]'
+
+    try:    
+        filterQuery = buildQuery()
+        
+        setOutputColumns()
+        
+        if filterQuery != '':
+            filterQueryToExecute = ''
+            filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
+            
+            if showdebug:
+                print("DBG:Executing:",dummyfilterQuery)
+            
+            exec(dummyfilterQuery)
+            
+            if showdebug:
+                print("DBG:displayResults:",filterQueryToExecute)
+            
+            results = eval(filterQueryToExecute)
+            
+            if (len(results) == 0):
+                print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                clearEntities()
+            else:
+                print(bot_name,": I found ", len(results), " courses:")
+                print("===================================================")
+                print(results)
+                print("===================================================")
+                saveEntity()
+    except:
+        print(bot_name, ": Something went wrong. Try again.")
 
 ##################################################################################
 # Main chat program: This is the one that will process user inputs and respond!
 ##################################################################################
 
+# Startup
+print("***************************************************")
+print("***                ", bot_name, "                   ***")
+print("***                 STARTING UP                 ***")
+print("***************************************************")
+print("") # blank line
 # Initialization
 result = None
 stopSearch = False
@@ -773,8 +938,8 @@ df = df.assign(start_date_conv = start_date_conv)
 
 # Greet user
 lstGreetings = ["Hello!","Hi There!","Hi! How are you doing today?","Welcome to my world!","Namastey!"]
-print("CB:",lstGreetings[np.random.randint(0,len(lstGreetings))])
-print("CB: How may I help you?")
+print(bot_name, ":", lstGreetings[np.random.randint(0,len(lstGreetings))])
+print(bot_name, ": How may I help you?")
 
 # Start the endless interaction!
 while (True):
@@ -783,62 +948,74 @@ while (True):
     lstIntents = identifyIntents(response)
     for intent in lstIntents:
         if intent.intentType == 'greeting':
-            print ("CB: ", intent.response)
+            print ("\n", bot_name, ": ", intent.response)
         elif intent.intentType == 'search':
-            print ("CB: ", intent.response)
-            filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-            print(filterQueryExec)
-            exec(filterQueryExec)
-            resultSize = len(data)
-            if resultSize == 0:
-                filterQuery = '' # clear the query
-                print("CB: Sorry I did not find any courses matching your search :(. Try again")
-                clearEntities()
-            elif resultSize > 50:
-                print ("CB: I found ", resultSize, " courses matching your search. Tell me the program types or location or university you want to look for and we can narrow down the list further")
-                print ("CB: You dont want me to dump so many on you ;)!")
-            else:
-                print("CB: I found ",resultSize," courses matching your search. Do you want to view them or filter them further?")
+            try:
+                print ("\n", bot_name, ": ", intent.response)
+                saveEntity()
+                filterQuery = findEntities(response)
+                filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
+                if showdebug:
+                    print("DBG:",filterQueryExec)
+                exec(filterQueryExec)
+                resultSize = len(data)
+                if resultSize == 0:
+                    filterQuery = '' # clear the query
+                    print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                    clearEntities()
+                elif resultSize > 50:
+                    print (bot_name, ": I found ", resultSize, " courses matching your search.")
+                    print (bot_name, ": Tell me the program types or location or university you want to look for and we can narrow down the list further")
+                    print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
+                    saveEntity()
+                else:
+                    print(bot_name, ": I found ",resultSize," courses matching your search. Do you want to view them or filter them further?")
+                    saveEntity()
+            except:
+                print("\n", bot_name, ": Something went wrong. Try again.")
         elif intent.intentType == 'view':
-            print ("CB: ", intent.response)
+            print ("\n", bot_name, ": ", intent.response)
             displayResults()
         elif intent.intentType == 'stop':
-            print ("CB: ", intent.response)
+            print ("\n", bot_name, ": ", intent.response)
             stopSearch = True
         elif intent.intentType == 'restart':
-            print ("CB: ", intent.response)
+            print ("\n", bot_name, ": ", intent.response)
             clearEntities()
         elif intent.intentType == 'structure':
-            filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-            print(filterQueryExec)
-            exec(filterQueryExec)
+            print ("\n", bot_name, ": ", intent.response)
             entity.showstructure = True
             displayResults()
         elif intent.intentType == 'showfees':
-            filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-            print(filterQueryExec)
-            exec(filterQueryExec)
+            print ("\n", bot_name, ": ", intent.response)
+            entity.showfees = True
+            displayResults()
+        elif intent.intentType == 'showrank':
+            print ("\n", bot_name, ": ", intent.response)
             entity.showfees = True
             displayResults()
         elif intent.intentType == 'univs':
-            filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-            print(filterQueryExec)
-            exec(filterQueryExec)
-            entity.showunivs = True
+            print ("\n", bot_name, ": ", intent.response)
+            entity.showuniv = True
             displayResults()
+        elif intent.intentType == 'showdebug':
+            print ("\n", bot_name, ": ", intent.response)
+            showdebug = True
         else:
-            print ("CB: I cant understand your intent :(! Please have a human communicate with me!")
+            print ("\n", bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
     
     if (stopSearch):
         break
 # End while
 
 # End of the chat session
-print("CB: It was nice talking to you! Have a good day! If you like me, give me 5*s ;)")
+print(bot_name, ": It was N.I.C.E. talking to you! Have a good day!")
+print(bot_name, ": *** If you like me, give me 5 *s ;) ***")
+print("") # blank line
+print("***************************************************")
+print("***                ", bot_name, "                   ***")
+print("***                 SHUTTING DOWN               ***")
+print("***************************************************")
                 
 ###################################################################################
 # This section below is to play around with the code. Keep this commented once done.
@@ -849,4 +1026,6 @@ print("CB: It was nice talking to you! Have a good day! If you like me, give me 
 #df['durationInDays']==12
 # df[(df["country_name"].isin (["India"])) & (df["durationInDays"] == 540)][['program_name','country_name','duration','university_name','tution_1_currency','tution_1_money']]
 #df[(df["cityName"].str.lower().isin (["mumbai"])) & (df["start_date_conv"] <"1919-01-01")]
+#df[(df["country_name"].isin(["India"]))]["program_name"]
+#df[((df["program_type"].isin(["Master"])) & ((df["university_name"].str.contains("Armenia")) | df["university_name"].str.contains("American University") | df["program_name"].str.contains("Political Science", "American University") | df["program_name"].str.contains("International Affairs") | df["structure"].str.contains("International Affairs") | df["structure"].str.contains("American University") | df["structure"].str.contains("Armenia")))][["university_name","program_name","program_type"]]
 ###################################################################################
