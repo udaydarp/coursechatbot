@@ -8,6 +8,9 @@ from nltk.tokenize import sent_tokenize
 import pandas as pd
 from nltk.corpus import stopwords
 from datetime import datetime
+from nltk.stem.lancaster import LancasterStemmer
+
+stemmer = LancasterStemmer()
 
 #from nltk.corpus import wordnet as wn
 
@@ -648,19 +651,34 @@ prev_entity = entity
 bot_name = 'N.I.C.E.'
 bot_full_name = '"Naturally" Intelligent Chatbot for Educational courses'
 showdebug = False
-    
+course_vocab = [] # unique list of course-related words in the dataframe
+df_course_list = [] # per row list of course-related words in the dataframe
+df_course_matrix = []
+nn_words = []
+row_map = []
+
 ###################################################################################
 # Method to initialize the global variables on every search error to reset the data
 ###################################################################################
 def clearEntities():    
     global entity
     global prev_entity
+    global course_vocab
+    global df_course_list
+    global df_course_matrix
+    global nn_words
+    global row_map
 
     if showdebug:
         print("DBG: Clearing:", entity.dump())
         print("DBG: Setting entity to:", prev_entity.dump())
     entity = prev_entity
     prev_entity.__init__()
+    course_vocab = [] # unique list of course-related words in the dataframe
+    df_course_list = [] # per row list of course-related words in the dataframe
+    df_course_matrix = []
+    nn_words = []
+    row_map = []
 
 ###################################################################################
 # Method to go backup a successfully executed entity
@@ -835,43 +853,243 @@ def displayResults():
         
     results=''
     filterQueryToExecute = ''
-    dummyfilterQuery = 'data=df[(df["country_name"].isin(["India"]))]["program_name"]'
+    #dummyfilterQuery = 'data=df[(df["country_name"].isin(["India"]))]["program_name"]'
 
-    try:    
-        filterQuery = buildQuery()
+    #try:
+    
+    filterQuery = buildQuery()
+    
+    setOutputColumns()
+    
+    if filterQuery != '':
+        filterQueryToExecute = ''
+        filterQueryToExecute = 'df['+filterQuery+']'
         
-        setOutputColumns()
+        #if showdebug:
+        #    print("DBG:Executing:",dummyfilterQuery)
         
-        if filterQuery != '':
-            filterQueryToExecute = ''
-            filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
+        #exec(dummyfilterQuery)
+        
+        if showdebug:
+            print("DBG:displayResults:",filterQueryToExecute)
+        
+        results = eval(filterQueryToExecute)
+        
+        if (len(results) == 0):
+            print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+            clearEntities()
+        else:
+            dataIndexSorted = findRelevantResults("dummy sentence", results)
             
-            if showdebug:
-                print("DBG:Executing:",dummyfilterQuery)
+            print (dataIndexSorted)
             
-            exec(dummyfilterQuery)
+            if dataIndexSorted.empty:
+                filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
+                if showdebug:
+                    print("DBG:displayResults:",filterQueryToExecute)
             
-            if showdebug:
-                print("DBG:displayResults:",filterQueryToExecute)
-            
-            results = eval(filterQueryToExecute)
-            
-            if (len(results) == 0):
-                print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
-                clearEntities()
-            else:
+                results = eval(filterQueryToExecute)
+                
                 print(bot_name,": I found ", len(results), " courses:")
                 print("===================================================")
                 print(results)
                 print("===================================================")
-                saveEntity()
-    except:
-        print(bot_name, ": Something went wrong. Try again.")
+            else:
+                print(bot_name,": I found ", len(dataIndexSorted), " courses, sorted by relevance:")
+                print("===================================================")
+                #print(results.sort_values(by=dataIndexSorted["index"], axis=0, ascending = False))
+                for (idx, r) in results.iterrows():
+                    print(idx)
+                #print(results.sort_values(by=np.array(dataIndexSorted["index"]), axis=0, ascending = False))
+                print(results.loc[np.array(dataIndexSorted["index"])])
+                print("===================================================")
+            saveEntity()
+    #except:
+        #print(bot_name, ": Something went wrong. Try again.")
+
+#####################################################################
+# Function to find cosine similarity between two sentences
+#####################################################################
+def cos_sim(a, b):
+    """Takes 2 vectors a, b and returns the cosine similarity according 
+    to the definition of the dot product
+    """
+    dot_product = np.dot(a, b)
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    
+    if norm_a == 0 or norm_b == 0:
+        return 0
+    else:
+    	return dot_product / (norm_a * norm_b)
+
+#####################################################################
+# Build vocabulary for university_name, program_name, program_type
+#####################################################################
+def buildCourseVocabulary(data):
+    global course_vocab
+    global df_course_list
+    global row_map
+    
+    # Create unique list of data words
+    course_vocab = []
+    df_course_list = []
+    row_map = []
+    
+    counter = 0
+    for (idx, d) in data.iterrows():
+        row = {}
+        u = d["university_name"]
+        words = u.split()
+        for w in words:
+            w = stemmer.stem(w.lower())
+            course_vocab.append(w)
+            if row.get(w):
+                continue;
+            else:
+                row[w] = 1
+    
+        pn = d["program_name"]
+        words = pn.split()
+        for w in words:
+            w = stemmer.stem(w.lower())
+            course_vocab.append(w)
+            if row.get(w):
+                continue;
+            else:
+                row[w] = 1
+    
+        pt = d["program_type"]
+        words = pt.split()
+        for w in words:
+            w = stemmer.stem(w.lower())
+            course_vocab.append(w)
+            if row.get(w):
+                continue;
+            else:
+                row[w] = 1
+        
+        df_course_list.append(row)
+        row_map.append({'data_indx':idx, 'clist_indx':counter})
+        counter = counter + 1
+    
+    course_vocab = list(set(course_vocab)) # unique list
+    
+############################################################################
+# Function to return data index for the corresponding index from courselist
+############################################################################
+def get_data_index(clist_idx):
+    global row_map
+    
+    #print("clist_idx:", clist_idx)
+    #print(row_map)
+    row = next((row for row in row_map if row['clist_indx'] == clist_idx), None)
+    #print(row)
+    return row['data_indx']
+
+#######################################################################
+# Create Score matrix for course words in a list with the presence (1)
+# or absence of words in the vocabulary
+#######################################################################
+def buildScoreMatrix(data):
+    global course_vocab
+    global df_course_matrix
+    global df_course_list
+    
+    # Create matrix of presence or absence of a word per row of data
+    df_course_matrix = []
+    for d in df_course_list:
+        row = []
+        for v in course_vocab:
+            vfound = False
+            for w in d.keys():
+                if v == w:
+                    row.append(1)
+                    vfound = True
+                    break
+            if not vfound:
+                row.append(0)
+        df_course_matrix.append(row)
+
+##########################################################################
+# Create Score matrix for a sentence with the presence (1) or absence (0)
+# of words in the vocabulary
+##########################################################################
+def getSentenceMatrix(sentence):
+    global course_vocab
+    global nn_words
+    
+    # tokenize the sentence and create the matrix
+    text = nltk.word_tokenize(sentence)
+    pos=nltk.pos_tag(text)
+    
+    words=nn_words # Take from the already existing list
+    for p in pos:
+        if p[1] == 'NNP':
+            words.append(p[0])
+            nn_words.append(p[0])
+            
+    row = []
+    
+    for v in course_vocab:
+        vfound = False
+        for w in words:
+            w = stemmer.stem(w.lower())
+            if v == w:
+                row.append(1)
+                vfound = True
+                break
+        if not vfound:
+            row.append(0)
+    return row
+
+###################################################################################################
+# Function to identify course names, program name, program type entered in the search and match
+# rows in the dataset. If matches found, the row indices will be returned in the sorted order of
+# relevance.
+###################################################################################################
+def findRelevantResults(sentence, data):
+    global df_course_matrix
+    
+    # call method to build the vocabulary for course names
+    buildCourseVocabulary(data)
+    buildScoreMatrix(data)
+    
+    # create matrix for the sentence
+    row = getSentenceMatrix(sentence)
+    if row == None or row == []:
+        return data # No course name in search text
+    
+    row_array = np.array(row)
+    
+    data_cos = pd.DataFrame(data=None, columns=('index','cosine'))
+    matchFound = False
+    
+    for (idx, d) in enumerate(df_course_matrix):
+        d_array = np.array(d)
+        cosine = cos_sim(row_array, d_array)
+        #print(cosine)
+        #data["cosine"][idx] = cosine
+        #print("Row:", str(idx), "Cosine["+str(idx)+"]:",str(cosine))
+        if cosine >= 0.05:
+            data_cos = data_cos.append({'index':int(get_data_index(idx)), 'cosine':cosine}, ignore_index = True)
+            matchFound = True
+            #print(data_cos)
+    
+    if matchFound:
+        data_cos = data_cos.sort_values(by="cosine", ascending = False)
+    
+    print("CB: Data with cosine scores:")
+    #print("==========================================================")
+    #print(data_cos[["university_name","program_name","program_type","cosine"]])
+    print("==========================================================")
+    print(data_cos)
+    print("==========================================================")
+    return data_cos
 
 ##################################################################################
 # Main chat program: This is the one that will process user inputs and respond!
 ##################################################################################
-
 # Startup
 print("***************************************************")
 print("***                ", bot_name, "                   ***")
@@ -950,20 +1168,28 @@ while (True):
         if intent.intentType == 'greeting':
             print ("\n", bot_name, ": ", intent.response)
         elif intent.intentType == 'search':
-            try:
-                print ("\n", bot_name, ": ", intent.response)
-                saveEntity()
-                filterQuery = findEntities(response)
-                filterQueryExec = 'data = df['+filterQuery+'][['+entity.outputColumns+']]'
-                if showdebug:
-                    print("DBG:",filterQueryExec)
-                exec(filterQueryExec)
-                resultSize = len(data)
+            #try:
+            print ("\n", bot_name, ": ", intent.response)
+            saveEntity()
+            filterQuery = findEntities(response)
+            filterQueryExec = 'data = df['+filterQuery+']'
+            if showdebug:
+                print("DBG:",filterQueryExec)
+            exec(filterQueryExec)
+            resultSize = len(data)
+            if resultSize == 0:
+                filterQuery = '' # clear the query
+                print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                clearEntities()
+            else:
+                dataIndexSortedByCosine = findRelevantResults(response, data)
+                
+                resultSize = len(dataIndexSortedByCosine)
+                
                 if resultSize == 0:
-                    filterQuery = '' # clear the query
-                    print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
-                    clearEntities()
-                elif resultSize > 50:
+                    resultSize = len(data)
+                    
+                if resultSize > 50:
                     print (bot_name, ": I found ", resultSize, " courses matching your search.")
                     print (bot_name, ": Tell me the program types or location or university you want to look for and we can narrow down the list further")
                     print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
@@ -971,8 +1197,8 @@ while (True):
                 else:
                     print(bot_name, ": I found ",resultSize," courses matching your search. Do you want to view them or filter them further?")
                     saveEntity()
-            except:
-                print("\n", bot_name, ": Something went wrong. Try again.")
+            #except:
+                #print("\n", bot_name, ": Something went wrong. Try again.")
         elif intent.intentType == 'view':
             print ("\n", bot_name, ": ", intent.response)
             displayResults()
@@ -1026,6 +1252,8 @@ print("***************************************************")
 #df['durationInDays']==12
 # df[(df["country_name"].isin (["India"])) & (df["durationInDays"] == 540)][['program_name','country_name','duration','university_name','tution_1_currency','tution_1_money']]
 #df[(df["cityName"].str.lower().isin (["mumbai"])) & (df["start_date_conv"] <"1919-01-01")]
-#df[(df["country_name"].isin(["India"]))]["program_name"]
-#df[((df["program_type"].isin(["Master"])) & ((df["university_name"].str.contains("Armenia")) | df["university_name"].str.contains("American University") | df["program_name"].str.contains("Political Science", "American University") | df["program_name"].str.contains("International Affairs") | df["structure"].str.contains("International Affairs") | df["structure"].str.contains("American University") | df["structure"].str.contains("Armenia")))][["university_name","program_name","program_type"]]
+#d=df[(df["country_name"].isin(["India"]))][["program_name"][0]]
+#np.array(d)[0]
+#d=df[((df["program_type"].isin(["Master"])) & ((df["university_name"].str.contains("Armenia")) | df["university_name"].str.contains("American University") | df["program_name"].str.contains("Political Science", "American University") | df["program_name"].str.contains("International Affairs") | df["structure"].str.contains("International Affairs") | df["structure"].str.contains("American University") | df["structure"].str.contains("Armenia")))][["university_name","program_name","program_type"]]
+#np.array(d)[0:2]
 ###################################################################################
