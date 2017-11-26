@@ -85,65 +85,82 @@ training_data.append({"class":"showfees", "sentence":"show me the fees"})
 training_data.append({"class":"showfees", "sentence":"show me the program fees"})
 training_data.append({"class":"showfees", "sentence":"show me the course fees"})
 
-training_data.append({"class":"structure", "sentence":"what is the course structure?"})
-training_data.append({"class":"structure", "sentence":"what are the modules?"})
-training_data.append({"class":"structure", "sentence":"what is the course schedule?"})
-training_data.append({"class":"structure", "sentence":"show me the structure"})
-training_data.append({"class":"structure", "sentence":"show me the program structure"})
-training_data.append({"class":"structure", "sentence":"show me the course structure"})
+training_data.append({"class":"showstructure", "sentence":"what is the course structure?"})
+training_data.append({"class":"showstructure", "sentence":"what are the modules?"})
+training_data.append({"class":"showstructure", "sentence":"what is the course schedule?"})
+training_data.append({"class":"showstructure", "sentence":"show me the structure"})
+training_data.append({"class":"showstructure", "sentence":"show me the program structure"})
+training_data.append({"class":"showstructure", "sentence":"show me the course structure"})
 
-training_data.append({"class":"univs", "sentence":"which universities offer the courses?"})
-training_data.append({"class":"univs", "sentence":"which universities offer the programs?"})
-training_data.append({"class":"univs", "sentence":"which universities conduct the courses?"})
-training_data.append({"class":"univs", "sentence":"which universities conduct the programs?"})
-training_data.append({"class":"univs", "sentence":"which universities have the courses?"})
-training_data.append({"class":"univs", "sentence":"which universities have the programs?"})
-training_data.append({"class":"univs", "sentence":"list of universities that offer the courses"})
-training_data.append({"class":"univs", "sentence":"list of universities that offer the programs"})
-training_data.append({"class":"univs", "sentence":"list of universities that conduct the courses"})
-training_data.append({"class":"univs", "sentence":"list of universities that conduct the programs"})
-training_data.append({"class":"univs", "sentence":"list of universities that have the courses"})
-training_data.append({"class":"univs", "sentence":"list of universities that have the programs"})
-training_data.append({"class":"univs", "sentence":"which institutes offer the courses?"})
-training_data.append({"class":"univs", "sentence":"which institutes offer the programs?"})
-training_data.append({"class":"univs", "sentence":"which institutes conduct the courses?"})
-training_data.append({"class":"univs", "sentence":"which institutes conduct the programs?"})
-training_data.append({"class":"univs", "sentence":"which institutes have the courses?"})
-training_data.append({"class":"univs", "sentence":"which institutes have the programs?"})
-training_data.append({"class":"univs", "sentence":"list of institutes that offer the courses"})
-training_data.append({"class":"univs", "sentence":"list of institutes that offer the programs"})
-training_data.append({"class":"univs", "sentence":"list of institutes that conduct the courses"})
-training_data.append({"class":"univs", "sentence":"list of institutes that conduct the programs"})
-training_data.append({"class":"univs", "sentence":"list of institutes that have the courses"})
-training_data.append({"class":"univs", "sentence":"list of institutes that have the programs"})
-training_data.append({"class":"univs", "sentence":"which colleges offer the courses?"})
-training_data.append({"class":"univs", "sentence":"which colleges offer the programs?"})
-training_data.append({"class":"univs", "sentence":"which colleges conduct the courses?"})
-training_data.append({"class":"univs", "sentence":"which colleges conduct the programs?"})
-training_data.append({"class":"univs", "sentence":"which colleges have the courses?"})
-training_data.append({"class":"univs", "sentence":"which colleges have the programs?"})
-training_data.append({"class":"univs", "sentence":"list of colleges that offer the courses"})
-training_data.append({"class":"univs", "sentence":"list of colleges that offer the programs"})
-training_data.append({"class":"univs", "sentence":"list of colleges that conduct the courses"})
-training_data.append({"class":"univs", "sentence":"list of colleges that conduct the programs"})
-training_data.append({"class":"univs", "sentence":"list of colleges that have the courses"})
-training_data.append({"class":"univs", "sentence":"list of colleges that have the programs"})
-training_data.append({"class":"univs", "sentence":"which schools offer the courses?"})
-training_data.append({"class":"univs", "sentence":"which schools offer the programs?"})
-training_data.append({"class":"univs", "sentence":"which schools conduct the courses?"})
-training_data.append({"class":"univs", "sentence":"which schools conduct the programs?"})
-training_data.append({"class":"univs", "sentence":"which schools have the courses?"})
-training_data.append({"class":"univs", "sentence":"which schools have the programs?"})
-training_data.append({"class":"univs", "sentence":"list of schools that offer the courses"})
-training_data.append({"class":"univs", "sentence":"list of schools that offer the programs"})
-training_data.append({"class":"univs", "sentence":"list of schools that conduct the courses"})
-training_data.append({"class":"univs", "sentence":"list of schools that conduct the programs"})
-training_data.append({"class":"univs", "sentence":"list of schools that have the courses"})
-training_data.append({"class":"univs", "sentence":"list of schools that have the programs"})
+training_data.append({"class":"showuniv", "sentence":"which universities offer the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which universities offer the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which universities conduct the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which universities conduct the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which universities have the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which universities have the programs?"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that offer the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that offer the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that conduct the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that conduct the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that have the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of universities that have the programs"})
+training_data.append({"class":"showuniv", "sentence":"which institutes offer the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which institutes offer the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which institutes conduct the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which institutes conduct the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which institutes have the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which institutes have the programs?"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that offer the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that offer the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that conduct the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that conduct the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that have the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of institutes that have the programs"})
+training_data.append({"class":"showuniv", "sentence":"which colleges offer the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which colleges offer the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which colleges conduct the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which colleges conduct the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which colleges have the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which colleges have the programs?"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that offer the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that offer the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that conduct the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that conduct the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that have the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of colleges that have the programs"})
+training_data.append({"class":"showuniv", "sentence":"which schools offer the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which schools offer the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which schools conduct the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which schools conduct the programs?"})
+training_data.append({"class":"showuniv", "sentence":"which schools have the courses?"})
+training_data.append({"class":"showuniv", "sentence":"which schools have the programs?"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that offer the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that offer the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that conduct the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that conduct the programs"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that have the courses"})
+training_data.append({"class":"showuniv", "sentence":"list of schools that have the programs"})
 
 training_data.append({"class":"showrank", "sentence":"show me the rankings"})
 training_data.append({"class":"showrank", "sentence":"how are they ranked"})
 training_data.append({"class":"showrank", "sentence":"what are the rankings"})
+
+training_data.append({"class":"showduration", "sentence":"what is the duration?"})
+training_data.append({"class":"showduration", "sentence":"what is the duration of the courses?"})
+training_data.append({"class":"showduration", "sentence":"what is the duration of the programs?"})
+training_data.append({"class":"showduration", "sentence":"how long are the courses?"})
+training_data.append({"class":"showduration", "sentence":"how long are the programs?"})
+training_data.append({"class":"showduration", "sentence":"what is the length of the courses?"})
+training_data.append({"class":"showduration", "sentence":"what is the length of the programs?"})
+
+training_data.append({"class":"showdate", "sentence":"what is the commencement date?"})
+training_data.append({"class":"showdate", "sentence":"what is the start date?"})
+training_data.append({"class":"showdate", "sentence":"when are the courses commencing?"})
+training_data.append({"class":"showdate", "sentence":"when are the programs commencing?"})
+training_data.append({"class":"showdate", "sentence":"when are the programs starting?"})
+training_data.append({"class":"showdate", "sentence":"when are the courses starting?"})
+training_data.append({"class":"showdate", "sentence":"when do the programs start?"})
+training_data.append({"class":"showdate", "sentence":"when do the courses start?"})
 
 training_data.append({"class":"restart", "sentence":"no that is not what i was looking for"})
 training_data.append({"class":"restart", "sentence":"no"})
@@ -152,9 +169,14 @@ training_data.append({"class":"restart", "sentence":"no this was not what i want
 training_data.append({"class":"restart", "sentence":"no this is incorrect"})
 training_data.append({"class":"restart", "sentence":"no i expected something else"})
 training_data.append({"class":"restart", "sentence":"i was not searching for this"})
+training_data.append({"class":"restart", "sentence":"i want to restart the search"})
+training_data.append({"class":"restart", "sentence":"i want to reset the search"})
+training_data.append({"class":"restart", "sentence":"i want start a new search"})
+training_data.append({"class":"restart", "sentence":"i want to scrap this search and start a new one"})
+training_data.append({"class":"restart", "sentence":"i want to search for something else"})
 
 training_data.append({"class":"aboutme", "sentence":"whats your name?"})
-training_data.append({"class":"aboutme", "sentence":"why are you named cb?"})
+training_data.append({"class":"aboutme", "sentence":"why are you named NICE?"})
 training_data.append({"class":"aboutme", "sentence":"what can you help me with?"})
 training_data.append({"class":"aboutme", "sentence":"how much course data you have?"})
 
@@ -251,15 +273,19 @@ def getIntentResponse(intentType):
         return '*** Phew! Done for the day! ***'
     elif (intentType == 'restart'):
         return '*** Back to square one! ***'
-    elif (intentType == 'univs'):
+    elif (intentType == 'showuniv'):
         return '*** Fetching universities ***'
     elif (intentType == 'showfees'):
         return '*** Fetching fees ***'
     elif (intentType == 'showrank'):
         return '*** Fetching rankings ***'
+    elif (intentType == 'showduration'):
+        return '*** Fetching duration ***'
+    elif (intentType == 'showdate'):
+        return '*** Fetching date ***'
     elif (intentType == 'showdebug'):
         return '*** Turning on debug ***'
-    elif (intentType == 'structure'):
+    elif (intentType == 'showstructure'):
         return '*** Fetching course structure ***'
     elif (intentType == 'view'):
         return '*** Showtime! ***'
@@ -303,6 +329,7 @@ class Entity(object):
     showcountry = False
     showduration = False
     showdate = False
+    showprogramtype = False
     outputColumns = '\'program_name\''
     
     def __init__(self):
@@ -324,6 +351,7 @@ class Entity(object):
         self.showcountry = False
         self.showduration = False
         self.showdate = False
+        self.showprogramtype = False
         self.outputColumns = '\'program_name\''
         
     def dump(self):
@@ -346,6 +374,7 @@ class Entity(object):
         print("ShowCity:", self.showcity)
         print("ShowCountry:", self.showcountry)
         print("ShowDuration:", self.showduration)
+        print("ShowProgramType:", self.showprogramtype)
         print("ShowDate:", self.showdate)
         print("OutputColumns:", self.outputColumns)
         print("*************************************************")
@@ -488,9 +517,9 @@ def findDate(inpString):
 def findAmount(inpString):
     notPat = 'not'
     prefixPat = 'less than|more than|under|above|below'
-    amountPat = '[\d]+[,\.\d]*(?!month|year|day|months|years|days)'
+    amountPat = '((?:[A-Z]{3}|[$₹]|Rs) +(?:\d+(?:[.,]?\d*)*))'
     
-    amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+amountPat+'))')
+    amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*'+amountPat+')')
     amountValue = amountPattern.findall(inpString)
     
     if amountValue == None or amountValue == [] or amountValue == '':
@@ -501,7 +530,7 @@ def findAmount(inpString):
     prefixString = amountValue[0][2]
     compOperator = getComparisonOperator(notString, prefixString)
     
-    amount = amountValue[0][3]
+    amount = amountValue[0][3].split()[1]
     
     #print ("notString:", notString, "prefixString:", prefixString, "compOperator:", compOperator,"amount:", amount)
     return compOperator, amount
@@ -668,6 +697,7 @@ def clearEntities():
     global df_course_matrix
     global nn_words
     global row_map
+    global showdebug
 
     if showdebug:
         print("DBG: Clearing:", entity.dump())
@@ -679,6 +709,7 @@ def clearEntities():
     df_course_matrix = []
     nn_words = []
     row_map = []
+    showdebug = False
 
 ###################################################################################
 # Method to go backup a successfully executed entity
@@ -732,11 +763,12 @@ def buildQuery():
         filterQuery = filterQuery + andText + '(df["university_rank"] < '+ str(entity.rank) + ')'
         andText = ' & '
         entity.showrank = True
-        
-    if (entity.currency != None and entity.currency != [] and entity.currency != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
-        andText = ' & '
-        entity.showfees = True
+    
+    # temporarily commenting out currency in the filterQuery
+    #if (entity.currency != None and entity.currency != [] and entity.currency != ''):
+    #    filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
+    #    andText = ' & '
+    #    entity.showfees = True
 
     if (entity.duration != None and entity.duration != [] and entity.duration != ''):
         filterQuery = filterQuery + andText + '(df["durationInDays"] ' + entity.durationCompOp + ' ' + str(entity.duration) + ')'
@@ -811,8 +843,6 @@ def findEntities(inpString):
     if showdebug:
         print("DBG:findEntities:",filterQuery)
         
-    #print("CB: <<The student is searching for a course in ",loc.cities," city in ",loc.countries," with cost ",currency," ",amount, " and commencement date ", date, " with duration ", duration,">>")
-    #print("CB: <<FilterQuery:", filterQuery,">>")
     return filterQuery
 
 def setOutputColumns():
@@ -843,6 +873,9 @@ def setOutputColumns():
         
     if entity.showrank == True:
         entity.outputColumns = entity.outputColumns + ',' + '\'university_rank\''
+    
+    if entity.showprogramtype == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'program_type\''
         
 ###################################################################################
 # Method to display results of the search
@@ -853,59 +886,56 @@ def displayResults():
         
     results=''
     filterQueryToExecute = ''
-    #dummyfilterQuery = 'data=df[(df["country_name"].isin(["India"]))]["program_name"]'
 
-    #try:
-    
-    filterQuery = buildQuery()
-    
-    setOutputColumns()
-    
-    if filterQuery != '':
-        filterQueryToExecute = ''
-        filterQueryToExecute = 'df['+filterQuery+']'
+    try:
+        filterQuery = buildQuery()
         
-        #if showdebug:
-        #    print("DBG:Executing:",dummyfilterQuery)
+        setOutputColumns()
         
-        #exec(dummyfilterQuery)
-        
-        if showdebug:
-            print("DBG:displayResults:",filterQueryToExecute)
-        
-        results = eval(filterQueryToExecute)
-        
-        if (len(results) == 0):
-            print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
-            clearEntities()
-        else:
-            dataIndexSorted = findRelevantResults("dummy sentence", results)
+        if filterQuery != '':
+            filterQueryToExecute = ''
+            filterQueryToExecute = 'df['+filterQuery+']'
+                    
+            if showdebug:
+                print("DBG:displayResults:",filterQueryToExecute)
             
-            print (dataIndexSorted)
+            results = eval(filterQueryToExecute)
             
-            if dataIndexSorted.empty:
-                filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
-                if showdebug:
-                    print("DBG:displayResults:",filterQueryToExecute)
-            
-                results = eval(filterQueryToExecute)
-                
-                print(bot_name,": I found ", len(results), " courses:")
-                print("===================================================")
-                print(results)
-                print("===================================================")
+            if (len(results) == 0):
+                print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                clearEntities()
             else:
-                print(bot_name,": I found ", len(dataIndexSorted), " courses, sorted by relevance:")
-                print("===================================================")
-                #print(results.sort_values(by=dataIndexSorted["index"], axis=0, ascending = False))
-                for (idx, r) in results.iterrows():
-                    print(idx)
-                #print(results.sort_values(by=np.array(dataIndexSorted["index"]), axis=0, ascending = False))
-                print(results.loc[np.array(dataIndexSorted["index"])])
-                print("===================================================")
-            saveEntity()
-    #except:
-        #print(bot_name, ": Something went wrong. Try again.")
+                dataIndexSorted = findRelevantResults("dummy sentence", results)
+                
+                if dataIndexSorted.empty:
+                    filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
+                    if showdebug:
+                        print("DBG:displayResults:",filterQueryToExecute)
+                
+                    results = eval(filterQueryToExecute)
+                    
+                    print(bot_name,": I found ", len(results), " courses:")
+                    print("===================================================")
+                    print(results)
+                    print("===================================================")
+                else:
+                    entity.showprogramtype = True
+                    entity.showuniv = True
+                    setOutputColumns()
+                    
+                    filterQueryToExecute = 'results.loc[np.array(dataIndexSorted["index"])][['+entity.outputColumns+']]'
+
+                    print(bot_name,": I found ", len(dataIndexSorted), " courses, sorted by relevance:")
+                    if showdebug:
+                        print("DBG:displayResults:", filterQueryToExecute)
+                    
+                    results_final = eval(filterQueryToExecute)
+                    print("===================================================")
+                    print(results_final)
+                    print("===================================================")
+                saveEntity()
+    except:
+        print(bot_name, ": Something went wrong. Try again.")
 
 #####################################################################
 # Function to find cosine similarity between two sentences
@@ -981,10 +1011,7 @@ def buildCourseVocabulary(data):
 def get_data_index(clist_idx):
     global row_map
     
-    #print("clist_idx:", clist_idx)
-    #print(row_map)
     row = next((row for row in row_map if row['clist_indx'] == clist_idx), None)
-    #print(row)
     return row['data_indx']
 
 #######################################################################
@@ -1018,6 +1045,7 @@ def buildScoreMatrix(data):
 def getSentenceMatrix(sentence):
     global course_vocab
     global nn_words
+    global showdebug
     
     # tokenize the sentence and create the matrix
     text = nltk.word_tokenize(sentence)
@@ -1028,7 +1056,10 @@ def getSentenceMatrix(sentence):
         if p[1] == 'NNP':
             words.append(p[0])
             nn_words.append(p[0])
-            
+        
+    if showdebug:
+        print("NN Word list:", nn_words)
+        
     row = []
     
     for v in course_vocab:
@@ -1050,6 +1081,8 @@ def getSentenceMatrix(sentence):
 ###################################################################################################
 def findRelevantResults(sentence, data):
     global df_course_matrix
+    global showdebug
+    global bot_name
     
     # call method to build the vocabulary for course names
     buildCourseVocabulary(data)
@@ -1068,23 +1101,18 @@ def findRelevantResults(sentence, data):
     for (idx, d) in enumerate(df_course_matrix):
         d_array = np.array(d)
         cosine = cos_sim(row_array, d_array)
-        #print(cosine)
-        #data["cosine"][idx] = cosine
-        #print("Row:", str(idx), "Cosine["+str(idx)+"]:",str(cosine))
         if cosine >= 0.05:
             data_cos = data_cos.append({'index':int(get_data_index(idx)), 'cosine':cosine}, ignore_index = True)
             matchFound = True
-            #print(data_cos)
-    
+
     if matchFound:
         data_cos = data_cos.sort_values(by="cosine", ascending = False)
     
-    print("CB: Data with cosine scores:")
-    #print("==========================================================")
-    #print(data_cos[["university_name","program_name","program_type","cosine"]])
-    print("==========================================================")
-    print(data_cos)
-    print("==========================================================")
+    if showdebug:
+        print("\n", bot_name, ": Data with cosine scores:")
+        print("==========================================================")
+        print(data_cos)
+        print("==========================================================")
     return data_cos
 
 ##################################################################################
@@ -1208,7 +1236,7 @@ while (True):
         elif intent.intentType == 'restart':
             print ("\n", bot_name, ": ", intent.response)
             clearEntities()
-        elif intent.intentType == 'structure':
+        elif intent.intentType == 'showstructure':
             print ("\n", bot_name, ": ", intent.response)
             entity.showstructure = True
             displayResults()
@@ -1218,15 +1246,28 @@ while (True):
             displayResults()
         elif intent.intentType == 'showrank':
             print ("\n", bot_name, ": ", intent.response)
-            entity.showfees = True
+            entity.showrank = True
             displayResults()
-        elif intent.intentType == 'univs':
+        elif intent.intentType == 'showduration':
+            print ("\n", bot_name, ": ", intent.response)
+            entity.showduration = True
+            displayResults()
+        elif intent.intentType == 'showdate':
+            print ("\n", bot_name, ": ", intent.response)
+            entity.showdate = True
+            displayResults()
+        elif intent.intentType == 'showuniv':
             print ("\n", bot_name, ": ", intent.response)
             entity.showuniv = True
             displayResults()
         elif intent.intentType == 'showdebug':
             print ("\n", bot_name, ": ", intent.response)
             showdebug = True
+        elif intent.intentType == 'aboutme':
+            print ("\n", bot_name, ": ", intent.response)
+            print ("\n", bot_name, 'As you know, my name is: ', bot_name)
+            print ("\n", bot_name, 'It stands for: ', bot_full_name)
+            print ("\n", bot_name, 'And that is all that I will reveal about myself for now! :)')
         else:
             print ("\n", bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
     
@@ -1256,4 +1297,5 @@ print("***************************************************")
 #np.array(d)[0]
 #d=df[((df["program_type"].isin(["Master"])) & ((df["university_name"].str.contains("Armenia")) | df["university_name"].str.contains("American University") | df["program_name"].str.contains("Political Science", "American University") | df["program_name"].str.contains("International Affairs") | df["structure"].str.contains("International Affairs") | df["structure"].str.contains("American University") | df["structure"].str.contains("Armenia")))][["university_name","program_name","program_type"]]
 #np.array(d)[0:2]
+#data = df[(df["country_name"].str.lower().isin (["armenia"])) & (df["start_date_conv"] > '2018-09-01') & (df["tution_1_money"] == 1)]
 ###################################################################################
