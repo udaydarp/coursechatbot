@@ -144,6 +144,7 @@ training_data.append({"class":"showuniv", "sentence":"list of schools that have 
 training_data.append({"class":"showrank", "sentence":"show me the rankings"})
 training_data.append({"class":"showrank", "sentence":"how are they ranked"})
 training_data.append({"class":"showrank", "sentence":"what are the rankings"})
+training_data.append({"class":"showrank", "sentence":"can you show me the rankings"})
 
 training_data.append({"class":"showduration", "sentence":"what is the duration?"})
 training_data.append({"class":"showduration", "sentence":"what is the duration of the courses?"})
@@ -152,6 +153,10 @@ training_data.append({"class":"showduration", "sentence":"how long are the cours
 training_data.append({"class":"showduration", "sentence":"how long are the programs?"})
 training_data.append({"class":"showduration", "sentence":"what is the length of the courses?"})
 training_data.append({"class":"showduration", "sentence":"what is the length of the programs?"})
+training_data.append({"class":"showduration", "sentence":"can you show me the duration of the courses?"})
+training_data.append({"class":"showduration", "sentence":"can you show me the duration of the programs?"})
+training_data.append({"class":"showduration", "sentence":"show me the duration of the courses?"})
+training_data.append({"class":"showduration", "sentence":"show me the duration of the programs?"})
 
 training_data.append({"class":"showdate", "sentence":"what is the commencement date?"})
 training_data.append({"class":"showdate", "sentence":"what is the start date?"})
@@ -161,6 +166,11 @@ training_data.append({"class":"showdate", "sentence":"when are the programs star
 training_data.append({"class":"showdate", "sentence":"when are the courses starting?"})
 training_data.append({"class":"showdate", "sentence":"when do the programs start?"})
 training_data.append({"class":"showdate", "sentence":"when do the courses start?"})
+training_data.append({"class":"showdate", "sentence":"can you show me the commencement date?"})
+training_data.append({"class":"showdate", "sentence":"can you show me the start date?"})
+training_data.append({"class":"showdate", "sentence":"show me the commencement date"})
+training_data.append({"class":"showdate", "sentence":"show me the start date"})
+
 
 training_data.append({"class":"restart", "sentence":"no that is not what i was looking for"})
 training_data.append({"class":"restart", "sentence":"no"})
@@ -469,7 +479,7 @@ def findDate(inpString):
             validDate = datePattern.findall(inpString)
             if (validDate != None and validDate != []):
                 # valid month-year date
-                print("my:",validDate)
+                #print("my:",validDate)
                 day = '01'
                 notString = validDate[0][1]
                 prefixString = validDate[0][2]
@@ -1038,6 +1048,18 @@ def buildScoreMatrix(data):
                 row.append(0)
         df_course_matrix.append(row)
 
+##############################################################################
+# Function to identify if a given word is one of the previously searched
+# country or city.
+##############################################################################
+def IsWordIdentifiedAsLoc(word):
+    global entity
+    
+    if word.lower() in entity.cities or word.lower() in entity.countries:
+        return True
+    else:
+        return False
+    
 ##########################################################################
 # Create Score matrix for a sentence with the presence (1) or absence (0)
 # of words in the vocabulary
@@ -1054,9 +1076,15 @@ def getSentenceMatrix(sentence):
     words=nn_words # Take from the already existing list
     for p in pos:
         if p[1] == 'NNP':
-            words.append(p[0])
-            nn_words.append(p[0])
-        
+            word = p[0]
+            # check if this word is one of the cities or countries already entered
+            if not IsWordIdentifiedAsLoc(word):    
+                words.append(p[0])
+                nn_words.append(p[0])
+    
+    # get unique list
+    nn_words = list(set(nn_words))
+    
     if showdebug:
         print("NN Word list:", nn_words)
         
