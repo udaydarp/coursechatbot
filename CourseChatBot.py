@@ -14,7 +14,7 @@ stemmer = LancasterStemmer()
 
 #from nltk.corpus import wordnet as wn
 
-nltk.download('corpora/wordnet')
+# nltk.download('corpora/wordnet')
 
 import re
 from geotext import GeoText
@@ -34,6 +34,9 @@ training_data.append({"class":"greeting", "sentence":"how is it going today?"})
 training_data.append({"class":"greeting", "sentence":"good morning!"})
 training_data.append({"class":"greeting", "sentence":"good afternoon!"})
 training_data.append({"class":"greeting", "sentence":"good evening!"})
+training_data.append({"class":"greeting", "sentence":"good evening! how are you?"})
+training_data.append({"class":"greeting", "sentence":"good morning! how are you?"})
+training_data.append({"class":"greeting", "sentence":"good afternoon! how are you?"})
 training_data.append({"class":"greeting", "sentence":"namastey!"})
 training_data.append({"class":"greeting", "sentence":"hey!"})
 training_data.append({"class":"greeting", "sentence":"hi!"})
@@ -62,6 +65,8 @@ training_data.append({"class":"view", "sentence":"i want to view the course list
 training_data.append({"class":"view", "sentence":"yes"})
 
 training_data.append({"class":"stop", "sentence":"thanks for sharing the list!"})
+training_data.append({"class":"stop", "sentence":"thanks! this helps!"})
+training_data.append({"class":"stop", "sentence":"thanks! this was very helpful!"})
 training_data.append({"class":"stop", "sentence":"no i am done"})
 training_data.append({"class":"stop", "sentence":"that will be it for now"})
 training_data.append({"class":"stop", "sentence":"that is all i was looking for"})
@@ -74,6 +79,8 @@ training_data.append({"class":"stop", "sentence":"good day!"})
 training_data.append({"class":"stop", "sentence":"bye"})
 training_data.append({"class":"stop", "sentence":"good bye"})
 training_data.append({"class":"stop", "sentence":"stop"})
+training_data.append({"class":"stop", "sentence":"exit"})
+training_data.append({"class":"stop", "sentence":"quit"})
 
 training_data.append({"class":"showfees", "sentence":"what are the fees?"})
 training_data.append({"class":"showfees", "sentence":"what are the damages?"})
@@ -524,26 +531,44 @@ def findDate(inpString):
 ###################################################################################
 # Find amount entered (comma separated, non-comma separated
 ###################################################################################
-def findAmount(inpString):
+def findAmountAndCurrency(inpString):
     notPat = 'not'
     prefixPat = 'less than|more than|under|above|below'
     amountPat = '((?:[A-Z]{3}|[$₹]|Rs) +(?:\d+(?:[.,]?\d*)*))'
+    
+    # Return values
+    currency = ''
+    amount = ''
+    compOperator = ''
     
     amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*'+amountPat+')')
     amountValue = amountPattern.findall(inpString)
     
     if amountValue == None or amountValue == [] or amountValue == '':
-        return None, None
-    
+        amountPat = '((?:(?:\d+(?:[.,]?\d*)*) +[A-Z]{3}|[$₹]|Rs))'
+        amountPattern = re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*'+amountPat+')')
+        amountValue = amountPattern.findall(inpString)
+        
+        if amountValue == None or amountValue == [] or amountValue == '':
+            return None, None, None
+        else:
+            notString = amountValue[0][1]
+            prefixString = amountValue[0][2]
+            compOperator = getComparisonOperator(notString, prefixString)
+            
+            amount = amountValue[0][3].split()[0]
+            currency = amountValue[0][3].split()[1]
+    else:
     #print ("AmountValue:", amountValue)
-    notString = amountValue[0][1]
-    prefixString = amountValue[0][2]
-    compOperator = getComparisonOperator(notString, prefixString)
-    
-    amount = amountValue[0][3].split()[1]
+        notString = amountValue[0][1]
+        prefixString = amountValue[0][2]
+        compOperator = getComparisonOperator(notString, prefixString)
+        
+        amount = amountValue[0][3].split()[1]
+        currency = amountValue[0][3].split()[0]
     
     #print ("notString:", notString, "prefixString:", prefixString, "compOperator:", compOperator,"amount:", amount)
-    return compOperator, amount
+    return compOperator, amount, currency
 
 ###################################################################################
 # Find currency entered in text ($s and Rs only as of now)
@@ -608,13 +633,15 @@ def findCitiesAndCountries(inpString):
     if loc != None:
         if loc.cities != None and loc.cities != []:                
             for city in loc.cities:
+                if city.lower() == 'university':
+                    continue
                 locCities.append(city)
-            cityFound = True
+                cityFound = True
             
         if loc.countries != None and loc.countries != []:
             for country in loc.countries:
                 locCountries.append(country)
-            countryFound = True
+                countryFound = True
     
     if not cityFound or not countryFound:
         # split string into individual words, make camel case and check again
@@ -630,6 +657,8 @@ def findCitiesAndCountries(inpString):
                     if cityFound == False and loc.cities != None and loc.cities != []:
     
                         for city in loc.cities:
+                            if city.lower() == 'university':
+                                continue
                             locCities.append(city)
                         
                     if countryFound == False and loc.countries != None and loc.countries != []:
@@ -774,11 +803,10 @@ def buildQuery():
         andText = ' & '
         entity.showrank = True
     
-    # temporarily commenting out currency in the filterQuery
-    #if (entity.currency != None and entity.currency != [] and entity.currency != ''):
-    #    filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
-    #    andText = ' & '
-    #    entity.showfees = True
+    if (entity.currency != None and entity.currency != [] and entity.currency != ''):
+        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
+        andText = ' & '
+        entity.showfees = True
 
     if (entity.duration != None and entity.duration != [] and entity.duration != ''):
         filterQuery = filterQuery + andText + '(df["durationInDays"] ' + entity.durationCompOp + ' ' + str(entity.duration) + ')'
@@ -826,10 +854,11 @@ def findEntities(inpString):
         entity.dateCompOp = locDateCompOp
         entity.showdate = True
     
-    (localAmountCompOp, localAmount) = findAmount(inpString)
+    (localAmountCompOp, localAmount, localCurrency) = findAmountAndCurrency(inpString)
     if (localAmount != None and localAmount != []):
         entity.amount = localAmount
         entity.amountCompOp = localAmountCompOp
+        entity.currency = localCurrency
         entity.showfees = True
         
     locRank = findRanking(inpString)
@@ -837,10 +866,10 @@ def findEntities(inpString):
         entity.rank = locRank
         entity.showrank = True
         
-    localCurrency = findCurrency(inpString)
-    if (localCurrency != None and localCurrency != []):
-        entity.currency = localCurrency
-        entity.showfees = True
+    #localCurrency = findCurrency(inpString)
+    #if (localCurrency != None and localCurrency != []):
+    #    entity.currency = localCurrency
+    #    entity.showfees = True
         
     (localDurationCompOp, localDuration) = findDuration(inpString)
     if (localDuration != None and localDuration != []):
@@ -924,18 +953,34 @@ def displayResults():
                 
                     results = eval(filterQueryToExecute)
                     
-                    print(bot_name,": I found ", len(results), " courses:")
+                    size = len(results)
+                    print(bot_name,": I found ", size, " courses.")
+                    
+                    if (size > 5):
+                        print(bot_name,": Displaying top 5 records:")
+                        size = 5
+                    else:
+                        print(bot_name,": Displaying complete list:")
+                        
                     print("===================================================")
-                    print(results)
+                    print(results[0:size])
                     print("===================================================")
                 else:
                     entity.showprogramtype = True
                     entity.showuniv = True
                     setOutputColumns()
-                    
-                    filterQueryToExecute = 'results.loc[np.array(dataIndexSorted["index"])][['+entity.outputColumns+']]'
 
-                    print(bot_name,": I found ", len(dataIndexSorted), " courses, sorted by relevance:")
+                    size = len(dataIndexSorted)
+                    print(bot_name,": I found ", size, " courses.")
+                    
+                    if (size > 5):
+                        print(bot_name,": Displaying top 5 records, sorted by relevance")
+                        size = 5
+                    else:
+                        print(bot_name,": Displaying complete list, sorted by relevance:")
+                    
+                    filterQueryToExecute = 'results.loc[np.array(dataIndexSorted["index"])[0:'+str(size)+']][['+entity.outputColumns+']]'
+                    
                     if showdebug:
                         print("DBG:displayResults:", filterQueryToExecute)
                     
@@ -1075,7 +1120,7 @@ def getSentenceMatrix(sentence):
     
     words=nn_words # Take from the already existing list
     for p in pos:
-        if p[1] == 'NNP':
+        if p[1] == 'NNP' or p[1] == 'NNS' or p[1] == 'NNPS':
             word = p[0]
             # check if this word is one of the cities or countries already entered
             if not IsWordIdentifiedAsLoc(word):    
@@ -1192,6 +1237,14 @@ for idx,c in enumerate(df['city']):
 # Create new column "cityName" and add to dataset        
 df = df.assign(cityName=cityName)
 
+########################################
+# Replace "Viet<space>Nam" with "Vietnam" in country name.
+########################################
+d = df[(df['country_name'] == 'Viet Nam')]
+for (idx,v) in df[(df['country_name'] == 'Viet Nam')].iterrows():
+    df.loc[idx,'country_name'] = 'Vietnam'
+    #d['country_name'] = 'Vietnam'
+
 ################################################
 # Convert date from string into datetime object.
 ################################################
@@ -1220,6 +1273,8 @@ while (True):
     response=input("You: ")
     
     lstIntents = identifyIntents(response)
+    lstIntentsSize = len(lstIntents)
+    
     for intent in lstIntents:
         if intent.intentType == 'greeting':
             print ("\n", bot_name, ": ", intent.response)
@@ -1247,7 +1302,8 @@ while (True):
                     
                 if resultSize > 50:
                     print (bot_name, ": I found ", resultSize, " courses matching your search.")
-                    print (bot_name, ": Tell me the program types or location or university you want to look for and we can narrow down the list further")
+                    print (bot_name, ": Tell me the program names or types or location or university you want to look for.")
+                    print (bot_name, ": We can narrow down the list further")
                     print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
                     saveEntity()
                 else:
@@ -1259,8 +1315,10 @@ while (True):
             print ("\n", bot_name, ": ", intent.response)
             displayResults()
         elif intent.intentType == 'stop':
-            print ("\n", bot_name, ": ", intent.response)
-            stopSearch = True
+            # Check if stop is the only intent, else do not stop the chat here.
+            if (lstIntentsSize == 1):
+                print ("\n", bot_name, ": ", intent.response)
+                stopSearch = True
         elif intent.intentType == 'restart':
             print ("\n", bot_name, ": ", intent.response)
             clearEntities()
@@ -1295,6 +1353,8 @@ while (True):
             print ("\n", bot_name, ": ", intent.response)
             print ("\n", bot_name, 'As you know, my name is: ', bot_name)
             print ("\n", bot_name, 'It stands for: ', bot_full_name)
+            print ("\n", bot_name, 'I am your buddy to help you find the right courses.')
+            print ("\n", bot_name, 'Ask me any question and I will try to assist you.')
             print ("\n", bot_name, 'And that is all that I will reveal about myself for now! :)')
         else:
             print ("\n", bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
