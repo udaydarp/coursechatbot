@@ -486,7 +486,6 @@ def findDate(inpString):
             validDate = datePattern.findall(inpString)
             if (validDate != None and validDate != []):
                 # valid month-year date
-                #print("my:",validDate)
                 day = '01'
                 notString = validDate[0][1]
                 prefixString = validDate[0][2]
@@ -494,7 +493,6 @@ def findDate(inpString):
                 year = validDate[0][4]
         else:
             # valid ymd date
-            print("ymd:",validDate)
             notString = validDate[0][1]
             prefixString = validDate[0][2]
             year = validDate[0][3]
@@ -502,21 +500,15 @@ def findDate(inpString):
             day = validDate[0][5]
     else:
         # valid dmy date
-        print("dmy:",validDate)
         notString = validDate[0][1]
         prefixString = validDate[0][2]
         day = validDate[0][3]
         month = validDate[0][4]
         year = validDate[0][5]
         
-        print("Not and Prefix:", notString, prefixString)
     if (validDate == None or validDate == []):
-        #print('No valid date in:',inpString)
         return None, None
-    else:
-        #print('Valid date found:', validDate)
-        #return validDate[0][0]
-        
+    else:        
         #return date in y-m-d format
         numMonth = getNumericMonth(month)
         return getComparisonOperator(notString, prefixString), (year + "-" + numMonth + "-" + day)
@@ -1303,7 +1295,7 @@ while (True):
                 if resultSize > 50:
                     print (bot_name, ": I found ", resultSize, " courses matching your search.")
                     print (bot_name, ": Tell me the program names or types or location or university you want to look for.")
-                    print (bot_name, ": We can narrow down the list further")
+                    print (bot_name, ": We can narrow down the list further.")
                     print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
                     saveEntity()
                 else:
