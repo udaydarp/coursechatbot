@@ -57,6 +57,11 @@ training_data.append({"class":"search", "sentence":"i am looking for courses wit
 training_data.append({"class":"search", "sentence":"top ranked courses"})
 training_data.append({"class":"search", "sentence":"i want list of top ranked courses"})
 training_data.append({"class":"search", "sentence":"i want list of top 50 courses"})
+training_data.append({"class":"search", "sentence":"top rated ones"})
+training_data.append({"class":"search", "sentence":"top ranked ones"})
+training_data.append({"class":"search", "sentence":"top 10 rated"})
+training_data.append({"class":"search", "sentence":"top 10 ranked"})
+
 
 training_data.append({"class":"view", "sentence":"display the courses"})
 training_data.append({"class":"view", "sentence":"show me the list of courses"})
@@ -152,6 +157,20 @@ training_data.append({"class":"showrank", "sentence":"show me the rankings"})
 training_data.append({"class":"showrank", "sentence":"how are they ranked"})
 training_data.append({"class":"showrank", "sentence":"what are the rankings"})
 training_data.append({"class":"showrank", "sentence":"can you show me the rankings"})
+
+training_data.append({"class":"showlocation", "sentence":"where is the course conducted"})
+training_data.append({"class":"showlocation", "sentence":"which city is the course conducted"})
+training_data.append({"class":"showlocation", "sentence":"which country is the course conducted"})
+training_data.append({"class":"showlocation", "sentence":"where is the program conducted"})
+training_data.append({"class":"showlocation", "sentence":"which city is the program conducted"})
+training_data.append({"class":"showlocation", "sentence":"which country is the program conducted"})
+training_data.append({"class":"showlocation", "sentence":"where is the course conducted"})
+training_data.append({"class":"showlocation", "sentence":"which city are the courses conducted"})
+training_data.append({"class":"showlocation", "sentence":"which country are the courses conducted"})
+training_data.append({"class":"showlocation", "sentence":"where are the programs conducted"})
+training_data.append({"class":"showlocation", "sentence":"which city are the programs conducted"})
+training_data.append({"class":"showlocation", "sentence":"which country are the programs conducted"})
+
 
 training_data.append({"class":"showduration", "sentence":"what is the duration?"})
 training_data.append({"class":"showduration", "sentence":"what is the duration of the courses?"})
@@ -296,6 +315,8 @@ def getIntentResponse(intentType):
         return '*** Fetching fees ***'
     elif (intentType == 'showrank'):
         return '*** Fetching rankings ***'
+    elif (intentType == 'showlocation'):
+        return '*** Fetching location ***'
     elif (intentType == 'showduration'):
         return '*** Fetching duration ***'
     elif (intentType == 'showdate'):
@@ -668,7 +689,7 @@ def findRanking(inpString):
     strRank = ''
     numRank1 = ''
     numRank2 = ''
-    rankPattern = re.compile(r'(((top)+[ ]*([\d]*)(ranked|ranking|rank)*)|((ranking|ranked|rank)+[A-Za-z ]*([\d]*)))')
+    rankPattern = re.compile(r'(((top)+[ ]*([\d]*)(rated|ranked|ranking|rank)*)|((ranking|ranked|rated|rank)+[A-Za-z ]*([\d]*)))')
     #rankPattern = re.compile(r'([A-Za-z(?!top)]*)')
     
     rank = rankPattern.findall(inpString)
@@ -1096,6 +1117,17 @@ def IsWordIdentifiedAsLoc(word):
         return True
     else:
         return False
+
+#####################################################################################
+# Function to identify if a given word should be skipped from the course vocabulary.
+####################################################################################
+def IsWordAmongstSkipList(word):
+    global entity
+    
+    if word.lower() in ['course','courses','program','programs']:
+        return True
+    else:
+        return False
     
 ##########################################################################
 # Create Score matrix for a sentence with the presence (1) or absence (0)
@@ -1115,7 +1147,7 @@ def getSentenceMatrix(sentence):
         if p[1] == 'NNP' or p[1] == 'NNS' or p[1] == 'NNPS':
             word = p[0]
             # check if this word is one of the cities or countries already entered
-            if not IsWordIdentifiedAsLoc(word):    
+            if not IsWordIdentifiedAsLoc(word) and not IsWordAmongstSkipList(word):
                 words.append(p[0])
                 nn_words.append(p[0])
     
@@ -1325,6 +1357,11 @@ while (True):
         elif intent.intentType == 'showrank':
             print ("\n", bot_name, ": ", intent.response)
             entity.showrank = True
+            displayResults()
+        elif intent.intentType == 'showlocation':
+            print ("\n", bot_name, ": ", intent.response)
+            entity.showcity = True
+            entity.showcountry = True
             displayResults()
         elif intent.intentType == 'showduration':
             print ("\n", bot_name, ": ", intent.response)
