@@ -61,6 +61,13 @@ training_data.append({"class":"search", "sentence":"top rated ones"})
 training_data.append({"class":"search", "sentence":"top ranked ones"})
 training_data.append({"class":"search", "sentence":"top 10 rated"})
 training_data.append({"class":"search", "sentence":"top 10 ranked"})
+training_data.append({"class":"search", "sentence":"can you help me with list of courses"})
+training_data.append({"class":"search", "sentence":"can you help me find courses"})
+training_data.append({"class":"search", "sentence":"can you show me courses"})
+training_data.append({"class":"search", "sentence":"can you help me with list of programs"})
+training_data.append({"class":"search", "sentence":"can you help me find programs"})
+training_data.append({"class":"search", "sentence":"can you show me programs"})
+
 
 
 training_data.append({"class":"view", "sentence":"display the courses"})
@@ -207,14 +214,14 @@ training_data.append({"class":"restart", "sentence":"no i expected something els
 training_data.append({"class":"restart", "sentence":"i was not searching for this"})
 training_data.append({"class":"restart", "sentence":"i want to restart the search"})
 training_data.append({"class":"restart", "sentence":"i want to reset the search"})
-training_data.append({"class":"restart", "sentence":"i want start a new search"})
-training_data.append({"class":"restart", "sentence":"i want to scrap this search and start a new one"})
+training_data.append({"class":"restart", "sentence":"i want to start a new search"})
+#training_data.append({"class":"restart", "sentence":"i want to scrap this search and start a new one"})
 training_data.append({"class":"restart", "sentence":"i want to search for something else"})
 
 training_data.append({"class":"aboutme", "sentence":"whats your name?"})
 training_data.append({"class":"aboutme", "sentence":"why are you named NICE?"})
-training_data.append({"class":"aboutme", "sentence":"what can you help me with?"})
-training_data.append({"class":"aboutme", "sentence":"how much course data you have?"})
+training_data.append({"class":"aboutme", "sentence":"what all do you help with?"})
+training_data.append({"class":"aboutme", "sentence":"what all do you do?"})
 
 training_data.append({"class":"showdebug", "sentence":"show me debug"})
 training_data.append({"class":"showdebug", "sentence":"debug"})
@@ -790,7 +797,7 @@ def buildQuery():
         andText = ' & '
         entity.showcity = True
         if showdebug:
-            print("DBG:showcity:", entity.showcity)
+            print("DBG:buildQuery:showcity:", entity.showcity)
     
     if entity.countries != None and entity.countries != '':
         filterQuery = filterQuery + andText + '(df["country_name"].str.lower().isin (['
@@ -829,7 +836,7 @@ def buildQuery():
     setOutputColumns()
     
     if showdebug:
-        print("DBG:buildQuery:",filterQuery)
+        print("DBG:buildQuery:filterQuery:",filterQuery)
         
     return filterQuery
 
@@ -850,7 +857,7 @@ def findEntities(inpString):
             comma = ','
             entity.showcity = True
             if showdebug == True:
-                print("DBG:showcity:", entity.showcity)
+                print("DBG:FindEntities:showcity:", entity.showcity)
             
     if locCountries != None and locCountries != []:
         comma = ''
@@ -893,7 +900,7 @@ def findEntities(inpString):
     filterQuery = buildQuery()
     
     if showdebug:
-        print("DBG:findEntities:",filterQuery)
+        print("DBG:findEntities:filterQuery:",filterQuery)
         
     return filterQuery
 
@@ -942,14 +949,17 @@ def displayResults():
     try:
         filterQuery = buildQuery()
         
+        if showdebug:
+            print("DBG:displayResults:filterQuery:",filterQuery)
+                
         setOutputColumns()
         
-        if filterQuery != '':
+        if filterQuery != None and filterQuery != '':
             filterQueryToExecute = ''
             filterQueryToExecute = 'df['+filterQuery+']'
                     
             if showdebug:
-                print("DBG:displayResults:",filterQueryToExecute)
+                print("DBG:displayResults:filterQueryToExecute:",filterQueryToExecute)
             
             results = eval(filterQueryToExecute)
             
@@ -957,12 +967,12 @@ def displayResults():
                 print(bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
                 clearEntities()
             else:
-                dataIndexSorted = findRelevantResults("dummy sentence", results)
+                dataIndexSorted = findRelevantResults("123", results)
                 
                 if dataIndexSorted.empty:
                     filterQueryToExecute = 'df['+filterQuery+'][['+entity.outputColumns+']]'
                     if showdebug:
-                        print("DBG:displayResults:",filterQueryToExecute)
+                        print("DBG:displayResults:filterQueryToExecute:",filterQueryToExecute)
                 
                     results = eval(filterQueryToExecute)
                     
@@ -995,7 +1005,7 @@ def displayResults():
                     filterQueryToExecute = 'results.loc[np.array(dataIndexSorted["index"])[0:'+str(size)+']][['+entity.outputColumns+']]'
                     
                     if showdebug:
-                        print("DBG:displayResults:", filterQueryToExecute)
+                        print("DBG:displayResults:filterQueryToExecute:", filterQueryToExecute)
                     
                     results_final = eval(filterQueryToExecute)
                     print("===================================================")
@@ -1067,6 +1077,20 @@ def buildCourseVocabulary(data):
             else:
                 row[w] = 1
         
+# Uncomment below to include structure column in the list
+#        st = d["structure"]
+#        #print("DBG:st:", st)
+#        if st!= '' and str(st).lower() != 'nan':
+#            words = st.split()
+#            for w in words:
+#                for w1 in w.split():
+#                    w1 = stemmer.stem(w1.lower().replace("'",""))
+#                    course_vocab.append(w1)
+#                    if row.get(w1):
+#                        continue;
+#                    else:
+#                        row[w1] = 1
+        
         df_course_list.append(row)
         row_map.append({'data_indx':idx, 'clist_indx':counter})
         counter = counter + 1
@@ -1124,7 +1148,7 @@ def IsWordIdentifiedAsLoc(word):
 def IsWordAmongstSkipList(word):
     global entity
     
-    if word.lower() in ['course','courses','program','programs']:
+    if word.lower() in ['course','courses','program','programs','list']:
         return True
     else:
         return False
@@ -1140,11 +1164,11 @@ def getSentenceMatrix(sentence):
     
     # tokenize the sentence and create the matrix
     text = nltk.word_tokenize(sentence)
-    pos=nltk.pos_tag(text)
+    pos = nltk.pos_tag(text)
     
     words=nn_words # Take from the already existing list
     for p in pos:
-        if p[1] == 'NNP' or p[1] == 'NNS' or p[1] == 'NNPS':
+        if p[1] == 'NN' or p[1] == 'NNP' or p[1] == 'NNS' or p[1] == 'NNPS':
             word = p[0]
             # check if this word is one of the cities or countries already entered
             if not IsWordIdentifiedAsLoc(word) and not IsWordAmongstSkipList(word):
@@ -1155,7 +1179,7 @@ def getSentenceMatrix(sentence):
     nn_words = list(set(nn_words))
     
     if showdebug:
-        print("NN Word list:", nn_words)
+        print("DBG:NN Word list:", nn_words)
         
     row = []
     
@@ -1267,7 +1291,6 @@ df = df.assign(cityName=cityName)
 d = df[(df['country_name'] == 'Viet Nam')]
 for (idx,v) in df[(df['country_name'] == 'Viet Nam')].iterrows():
     df.loc[idx,'country_name'] = 'Vietnam'
-    #d['country_name'] = 'Vietnam'
 
 ################################################
 # Convert date from string into datetime object.
@@ -1307,32 +1330,37 @@ while (True):
             print ("\n", bot_name, ": ", intent.response)
             saveEntity()
             filterQuery = findEntities(response)
-            filterQueryExec = 'data = df['+filterQuery+']'
+            
             if showdebug:
-                print("DBG:",filterQueryExec)
-            exec(filterQueryExec)
-            resultSize = len(data)
-            if resultSize == 0:
-                filterQuery = '' # clear the query
-                print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
-                clearEntities()
-            else:
-                dataIndexSortedByCosine = findRelevantResults(response, data)
-                
-                resultSize = len(dataIndexSortedByCosine)
-                
+                    print("DBG:Main:filterQuery:",filterQuery)
+            
+            if filterQuery != None and filterQuery != '':
+                filterQueryExec = 'data = df['+filterQuery+']'
+                if showdebug:
+                    print("DBG:Main:filterQueryExec:",filterQueryExec)
+                exec(filterQueryExec)
+                resultSize = len(data)
                 if resultSize == 0:
-                    resultSize = len(data)
-                    
-                if resultSize > 50:
-                    print (bot_name, ": I found ", resultSize, " courses matching your search.")
-                    print (bot_name, ": Tell me the program names or types or location or university you want to look for.")
-                    print (bot_name, ": We can narrow down the list further.")
-                    print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
-                    saveEntity()
+                    filterQuery = '' # clear the query
+                    print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                    clearEntities()
                 else:
-                    print(bot_name, ": I found ",resultSize," courses matching your search. Do you want to view them or filter them further?")
-                    saveEntity()
+                    dataIndexSortedByCosine = findRelevantResults(response, data)
+                    
+                    resultSize = len(dataIndexSortedByCosine)
+                    
+                    if resultSize == 0:
+                        resultSize = len(data)
+                        
+                    if resultSize > 50:
+                        print (bot_name, ": I found ", resultSize, " courses matching your search.")
+                        print (bot_name, ": Tell me the program names or types or location or university you want to look for.")
+                        print (bot_name, ": We can narrow down the list further.")
+                        print (bot_name, ": *** You dont want me to dump so many on you ;)! ***")
+                        saveEntity()
+                    else:
+                        print(bot_name, ": I found ",resultSize," courses matching your search. Do you want to view them or filter them further?")
+                        saveEntity()
             #except:
                 #print("\n", bot_name, ": Something went wrong. Try again.")
         elif intent.intentType == 'view':
