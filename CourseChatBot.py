@@ -612,7 +612,7 @@ def findDuration(inpString):
     numDurationPat = '\d+'
     unitDurationPat = 'month|year|day'
     
-    durationPattern=re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')[ ]*('+numDurationPat+')[ ]*('+unitDurationPat+'))')
+    durationPattern=re.compile(r'(('+notPat+')*[ ]*('+prefixPat+')*[ ]*('+numDurationPat+')[ ]*('+unitDurationPat+'))')
     duration=durationPattern.findall(inpString.lower())
     
     if duration == None or duration == '' or duration == []:
@@ -1250,6 +1250,35 @@ result = None
 stopSearch = False
 df = pd.read_csv("C:\\Uday\\AEGIS\\NLP\\ChatBot\\201709301651_masters_portal.csv")
 
+########################################################################################
+# Missing value imputation
+# Updating missing values with the median value of the column group by country
+# university_rank|deadline|duration|
+# tution_1_currency|tution_1_money|tution_1_type|
+# tution_2_currency|tution_2_money|tution_2_type|
+# start_date|ielts_score
+########################################################################################
+
+# Type casting columns
+for d in df.columns.values:
+    if d == 'tution_1_money' or d == 'tution_2_money' or d == 'ielts_score':
+        df[d] = (df[d]).astype(float)
+    elif d == 'university_rank':
+        df[d] = (df[d]).astype(float)
+
+# Replacing NA values
+df['university_rank'] = df['university_rank'].fillna(df.groupby('country_name')['university_rank'].transform('median'))
+#df['deadline'] = df['deadline'].fillna(df.groupby('country_name')['deadline'].transform('median'))
+df['duration'] = df['duration'].fillna('12 months')
+#df['tution_1_currency'] = df['tution_1_currency'].fillna(df.groupby('country_name')['tution_1_currency'])
+df['tution_1_money'] = df['tution_1_money'].fillna(df.groupby('country_name')['tution_1_money'].transform('median'))
+df['tution_1_type'] = df['tution_1_type'].fillna('International')
+#df['tution_2_currency'] = df['tution_2_currency'].fillna(df.groupby('country_name')['tution_2_currency'].transform('median'))
+df['tution_2_money'] = df['tution_2_money'].fillna(df.groupby('country_name')['tution_2_money'].transform('median'))
+df['tution_2_type'] = df['tution_2_type'].fillna('International')
+df['start_date'] = df['start_date'].fillna('  2018-09-01 00:00:00')
+df['ielts_score'] = df['ielts_score'].fillna(df.groupby('country_name')['ielts_score'].transform('median'))
+
 ########################################
 # Convert the duration to value in days
 # to make this uniform across all rows
@@ -1258,7 +1287,7 @@ df = pd.read_csv("C:\\Uday\\AEGIS\\NLP\\ChatBot\\201709301651_masters_portal.csv
 durationInDays = []
 for idx,d in enumerate(df['duration']):
     if (isinstance(d, str)):
-        durn=findDuration(d)
+        compOp, durn = findDuration(d)
         durationInDays.append(to_number(durn))
     else:
         durationInDays.append(to_number(0))
@@ -1443,4 +1472,5 @@ print("***************************************************")
 #d=df[((df["program_type"].isin(["Master"])) & ((df["university_name"].str.contains("Armenia")) | df["university_name"].str.contains("American University") | df["program_name"].str.contains("Political Science", "American University") | df["program_name"].str.contains("International Affairs") | df["structure"].str.contains("International Affairs") | df["structure"].str.contains("American University") | df["structure"].str.contains("Armenia")))][["university_name","program_name","program_type"]]
 #np.array(d)[0:2]
 #data = df[(df["country_name"].str.lower().isin (["armenia"])) & (df["start_date_conv"] > '2018-09-01') & (df["tution_1_money"] == 1)]
+#df[(df["country_name"].str.lower().isin (["australia"])) & (df["tution_1_money"] < 20000) & (df["tution_1_currency"] == "AUD") & (df["durationInDays"] < 360)][['durationInDays','duration']]
 ###################################################################################
