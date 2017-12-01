@@ -223,6 +223,17 @@ training_data.append({"class":"aboutme", "sentence":"why are you named NICE?"})
 training_data.append({"class":"aboutme", "sentence":"what all do you help with?"})
 training_data.append({"class":"aboutme", "sentence":"what all do you do?"})
 
+training_data.append({"class":"creators", "sentence":"who created you?"})
+training_data.append({"class":"creators", "sentence":"who built you?"})
+training_data.append({"class":"creators", "sentence":"who worked on you?"})
+training_data.append({"class":"creators", "sentence":"who made you?"})
+
+training_data.append({"class":"tech", "sentence":"whats inside you?"})
+training_data.append({"class":"tech", "sentence":"which machine learning techniques are implemented?"})
+training_data.append({"class":"tech", "sentence":"are you using machine learning?"})
+training_data.append({"class":"tech", "sentence":"are you using NLP?"})
+training_data.append({"class":"tech", "sentence":"tell me about your technology?"})
+
 training_data.append({"class":"showdebug", "sentence":"show me debug"})
 training_data.append({"class":"showdebug", "sentence":"debug"})
 training_data.append({"class":"showdebug", "sentence":"turn on debug"})
@@ -336,6 +347,10 @@ def getIntentResponse(intentType):
         return '*** Showtime! ***'
     elif (intentType == 'aboutme'):
         return '*** Now I can brag! ;) ***'
+    elif (intentType == 'creators'):
+        return '*** My producers ;) ***'
+    elif (intentType == 'tech'):
+        return '*** My insides! ;) ***'
     else:
         return '*** Thinking ***'
 
@@ -1230,7 +1245,8 @@ def findRelevantResults(sentence, data):
         data_cos = data_cos.sort_values(by="cosine", ascending = False)
     
     if showdebug:
-        print("\n", bot_name, ": Data with cosine scores:")
+        print ("\n")
+        print(bot_name, ": Data with cosine scores:")
         print("==========================================================")
         print(data_cos)
         print("==========================================================")
@@ -1343,6 +1359,7 @@ df = df.assign(start_date_conv = start_date_conv)
 lstGreetings = ["Hello!","Hi There!","Hi! How are you doing today?","Welcome to my world!","Namastey!"]
 print(bot_name, ":", lstGreetings[np.random.randint(0,len(lstGreetings))])
 print(bot_name, ": How may I help you?")
+print(bot_name, ": You can specify city/ies or country/ies where you want to find courses and we can get started")
 
 # Start the endless interaction!
 while (True):
@@ -1353,15 +1370,17 @@ while (True):
     
     for intent in lstIntents:
         if intent.intentType == 'greeting':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
         elif intent.intentType == 'search':
             #try:
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             saveEntity()
             filterQuery = findEntities(response)
             
             if showdebug:
-                    print("DBG:Main:filterQuery:",filterQuery)
+                    print ("DBG:Main:filterQuery:",filterQuery)
             
             if filterQuery != None and filterQuery != '':
                 filterQueryExec = 'data = df['+filterQuery+']'
@@ -1371,7 +1390,8 @@ while (True):
                 resultSize = len(data)
                 if resultSize == 0:
                     filterQuery = '' # clear the query
-                    print("\n", bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
+                    print ("\n")
+                    print (bot_name, ": Sorry I did not find any courses matching your search :(. Try searching on another value")
                     clearEntities()
                 else:
                     dataIndexSortedByCosine = findRelevantResults(response, data)
@@ -1393,55 +1413,87 @@ while (True):
             #except:
                 #print("\n", bot_name, ": Something went wrong. Try again.")
         elif intent.intentType == 'view':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             displayResults()
         elif intent.intentType == 'stop':
             # Check if stop is the only intent, else do not stop the chat here.
             if (lstIntentsSize == 1):
-                print ("\n", bot_name, ": ", intent.response)
+                print ("\n")
+                print (bot_name, ": ", intent.response)
                 stopSearch = True
         elif intent.intentType == 'restart':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             clearEntities()
         elif intent.intentType == 'showstructure':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showstructure = True
             displayResults()
         elif intent.intentType == 'showfees':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showfees = True
             displayResults()
         elif intent.intentType == 'showrank':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showrank = True
             displayResults()
         elif intent.intentType == 'showlocation':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showcity = True
             entity.showcountry = True
             displayResults()
         elif intent.intentType == 'showduration':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showduration = True
             displayResults()
         elif intent.intentType == 'showdate':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showdate = True
             displayResults()
         elif intent.intentType == 'showuniv':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             entity.showuniv = True
             displayResults()
         elif intent.intentType == 'showdebug':
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             showdebug = True
         elif intent.intentType == 'aboutme':
+            print ("\n")
+            print (bot_name, ": ", intent.response)
+            print (bot_name, ': As you know, my name is: ', bot_name)
+            print (bot_name, ': It stands for: ', bot_full_name)
+            print (bot_name, ': I am your buddy to help you find the right courses.')
+            print (bot_name, ': Ask me any question and I will try to assist you.')
+            print (bot_name, ': And that is all that I will reveal about myself for now! :)')
+        elif intent.intentType == 'creators':
+            creators = ['Dinesh Mendiratta','Pratik Salunkhe','Rushikesh Jadhav','Kalpesh Bhatia','Uday Darp']
+            creators.sort()
             print ("\n", bot_name, ": ", intent.response)
-            print ("\n", bot_name, 'As you know, my name is: ', bot_name)
-            print ("\n", bot_name, 'It stands for: ', bot_full_name)
-            print ("\n", bot_name, 'I am your buddy to help you find the right courses.')
-            print ("\n", bot_name, 'Ask me any question and I will try to assist you.')
-            print ("\n", bot_name, 'And that is all that I will reveal about myself for now! :)')
+            print (bot_name, ": Here are the people who created me (in alphabetical order):")
+            for c in creators:
+                print ("\t-->", c)
+        elif intent.intentType == 'tech':
+            print (bot_name, ": ", intent.response)
+            print (bot_name, ": My internals are quite simple.")
+            print (bot_name, ": My brain uses Machine Learning, with Naive Bayes algorithm (but don't think of me as Naive ;)).")
+            print (bot_name, ": In my heart is Natural Language Processing and the works:")
+            print ("\t--> Tokenization")
+            print ("\t--> POS tagging")
+            print ("\t--> Stemming")
+            print ("\t--> Morphology")
+            print ("\t--> RegExp")
+            print (bot_name, ": My data set is from Kaggle")
+            print (bot_name, ": *** And I wont reveal how I keep a track of history :) ***")
+            print (bot_name, ": Not too complicated, am I?")
         else:
             print ("\n", bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
     
