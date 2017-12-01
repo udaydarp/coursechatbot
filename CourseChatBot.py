@@ -1477,7 +1477,8 @@ while (True):
         elif intent.intentType == 'creators':
             creators = ['Dinesh Mendiratta','Pratik Salunkhe','Rushikesh Jadhav','Kalpesh Bhatia','Uday Darp']
             creators.sort()
-            print ("\n", bot_name, ": ", intent.response)
+            print ("\n")
+            print (bot_name, ": ", intent.response)
             print (bot_name, ": Here are the people who created me (in alphabetical order):")
             for c in creators:
                 print ("\t-->", c)
@@ -1495,7 +1496,8 @@ while (True):
             print (bot_name, ": *** And I wont reveal how I keep a track of history :) ***")
             print (bot_name, ": Not too complicated, am I?")
         else:
-            print ("\n", bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
+            print ("\n")
+            print (bot_name, ": I cant understand your intent :(! Please have a human communicate with me!")
     
     if (stopSearch):
         break
