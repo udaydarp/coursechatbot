@@ -110,6 +110,10 @@ training_data.append({"class":"showstructure", "sentence":"what is the course sc
 training_data.append({"class":"showstructure", "sentence":"show me the structure"})
 training_data.append({"class":"showstructure", "sentence":"show me the program structure"})
 training_data.append({"class":"showstructure", "sentence":"show me the course structure"})
+training_data.append({"class":"showstructure", "sentence":"show me the course details"})
+training_data.append({"class":"showstructure", "sentence":"show me the program details"})
+training_data.append({"class":"showstructure", "sentence":"what are the course details"})
+training_data.append({"class":"showstructure", "sentence":"what are the program details"})
 
 training_data.append({"class":"showuniv", "sentence":"which universities offer the courses?"})
 training_data.append({"class":"showuniv", "sentence":"which universities offer the programs?"})
@@ -204,6 +208,14 @@ training_data.append({"class":"showdate", "sentence":"can you show me the start 
 training_data.append({"class":"showdate", "sentence":"show me the commencement date"})
 training_data.append({"class":"showdate", "sentence":"show me the start date"})
 
+training_data.append({"class":"showacadreqs", "sentence":"what is the eligibility criteria?"})
+training_data.append({"class":"showacadreqs", "sentence":"what is the course eligibility?"})
+training_data.append({"class":"showacadreqs", "sentence":"what is the program eligibility?"})
+training_data.append({"class":"showacadreqs", "sentence":"what do i need to do to be eligible for the program?"})
+training_data.append({"class":"showacadreqs", "sentence":"what are the academic requirements?"})
+training_data.append({"class":"showacadreqs", "sentence":"what are the course requirements?"})
+training_data.append({"class":"showacadreqs", "sentence":"what are the program requirements?"})
+training_data.append({"class":"showacadreqs", "sentence":"what are the documents required?"})
 
 training_data.append({"class":"restart", "sentence":"no that is not what i was looking for"})
 training_data.append({"class":"restart", "sentence":"no"})
@@ -314,7 +326,7 @@ def getIntent(inputText):
     intent.intentType = high_class
     intent.response = getIntentResponse(intent.intentType)
     #intent.response = '<<Your intent is: '+high_class+'>>'
-    intent.filterQuery = 'df["country_name"]=="India"'
+    intent.filterQuery = 'df["Country"]=="India"'
     return intent
 
 # Method to show some dynamic text in relation to intentType
@@ -339,6 +351,8 @@ def getIntentResponse(intentType):
         return '*** Fetching duration ***'
     elif (intentType == 'showdate'):
         return '*** Fetching date ***'
+    elif (intentType == 'showacadreqs'):
+        return '*** Fetching academic requirements ***'
     elif (intentType == 'showdebug'):
         return '*** Turning on debug ***'
     elif (intentType == 'showstructure'):
@@ -389,8 +403,9 @@ class Entity(object):
     showcountry = False
     showduration = False
     showdate = False
+    showacadreqs = False
     showprogramtype = False
-    outputColumns = '\'program_name\''
+    outputColumns = '\'Course\''
     
     def __init__(self):
         self.amount = ''
@@ -411,8 +426,9 @@ class Entity(object):
         self.showcountry = False
         self.showduration = False
         self.showdate = False
+        self.showacadreqs = False
         self.showprogramtype = False
-        self.outputColumns = '\'program_name\''
+        self.outputColumns = '\'Course\''
         
     def dump(self):
         print("*************************************************")
@@ -436,6 +452,7 @@ class Entity(object):
         print("ShowDuration:", self.showduration)
         print("ShowProgramType:", self.showprogramtype)
         print("ShowDate:", self.showdate)
+        print("ShowAcadReqs:", self.showacadreqs)
         print("OutputColumns:", self.outputColumns)
         print("*************************************************")
     
@@ -806,7 +823,7 @@ def buildQuery():
     filterQuery = ''
     
     if entity.cities != None and entity.cities != '':
-        filterQuery = filterQuery + andText + '(df["cityName"].str.lower().isin (['
+        filterQuery = filterQuery + andText + '(df["City"].str.lower().isin (['
         filterQuery = filterQuery + entity.cities
         filterQuery = filterQuery + ']))'
         andText = ' & '
@@ -815,7 +832,7 @@ def buildQuery():
             print("DBG:buildQuery:showcity:", entity.showcity)
     
     if entity.countries != None and entity.countries != '':
-        filterQuery = filterQuery + andText + '(df["country_name"].str.lower().isin (['
+        filterQuery = filterQuery + andText + '(df["Country"].str.lower().isin (['
         filterQuery = filterQuery + entity.countries
         filterQuery = filterQuery + ']))'
         andText = ' & '
@@ -827,19 +844,19 @@ def buildQuery():
         entity.showdate = True
     
     if (entity.amount != None and entity.amount != [] and entity.amount != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_money"] ' + entity.amountCompOp + ' ' + entity.amount + ')'        
+        filterQuery = filterQuery + andText + '(df["Fee"] ' + entity.amountCompOp + ' ' + entity.amount + ')'        
         andText = ' & '
         entity.showfees = True
 
     # Default value of rank = 1000 means no rank check required
     # Comparison will always be 'less than' entered value
     if (entity.rank != None and entity.rank != [] and entity.rank != '' and entity.rank != 1000):
-        filterQuery = filterQuery + andText + '(df["university_rank"] < '+ str(entity.rank) + ')'
+        filterQuery = filterQuery + andText + '(df["Rank"] < '+ str(entity.rank) + ')'
         andText = ' & '
         entity.showrank = True
     
     if (entity.currency != None and entity.currency != [] and entity.currency != ''):
-        filterQuery = filterQuery + andText + '(df["tution_1_currency"] == "' + entity.currency + '")'
+        filterQuery = filterQuery + andText + '(df["Currency"] == "' + entity.currency + '")'
         andText = ' & '
         entity.showfees = True
 
@@ -922,34 +939,37 @@ def findEntities(inpString):
 def setOutputColumns():
     global entity
     
-    entity.outputColumns = '\'program_name\''
+    entity.outputColumns = '\'Course\''
     
     if entity.showcity == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'cityName\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'City\''
     
     if entity.showcountry == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'country_name\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Country\''
         
     if entity.showduration == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'duration\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Duration\''
         
     if entity.showdate == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'start_date\''
-        
+        entity.outputColumns = entity.outputColumns + ',' + '\'StartDate\''
+    
+    if entity.showacadreqs == True:
+        entity.outputColumns = entity.outputColumns + ',' + '\'AcademicRequirements\', \'IELTSScore\''
+    
     if entity.showfees == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'tution_1_currency\',\'tution_1_money\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Currency\',\'Fee\''
         
     if entity.showuniv == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'university_name\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'University\''
         
     if entity.showstructure == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'structure\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Structure\''
         
     if entity.showrank == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'university_rank\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Rank\''
     
     if entity.showprogramtype == True:
-        entity.outputColumns = entity.outputColumns + ',' + '\'program_type\''
+        entity.outputColumns = entity.outputColumns + ',' + '\'Program\''
         
 ###################################################################################
 # Method to display results of the search
@@ -1062,7 +1082,7 @@ def buildCourseVocabulary(data):
     counter = 0
     for (idx, d) in data.iterrows():
         row = {}
-        u = d["university_name"]
+        u = d["University"]
         words = u.split()
         for w in words:
             w = stemmer.stem(w.lower())
@@ -1072,7 +1092,7 @@ def buildCourseVocabulary(data):
             else:
                 row[w] = 1
     
-        pn = d["program_name"]
+        pn = d["Course"]
         words = pn.split()
         for w in words:
             w = stemmer.stem(w.lower())
@@ -1082,7 +1102,7 @@ def buildCourseVocabulary(data):
             else:
                 row[w] = 1
     
-        pt = d["program_type"]
+        pt = d["Program"]
         words = pt.split()
         for w in words:
             w = stemmer.stem(w.lower())
@@ -1277,23 +1297,23 @@ df = pd.read_csv("C:\\Uday\\AEGIS\\NLP\\ChatBot\\201709301651_masters_portal.csv
 
 # Type casting columns
 for d in df.columns.values:
-    if d == 'tution_1_money' or d == 'tution_2_money' or d == 'ielts_score':
+    if d == 'Fee' or d == 'tution_2_money' or d == 'IELTSScore':
         df[d] = (df[d]).astype(float)
-    elif d == 'university_rank':
+    elif d == 'Rank':
         df[d] = (df[d]).astype(float)
 
 # Replacing NA values
-df['university_rank'] = df['university_rank'].fillna(df.groupby('country_name')['university_rank'].transform('median'))
+df['Rank'] = df['Rank'].fillna(df.groupby('Country')['Rank'].transform('median'))
 #df['deadline'] = df['deadline'].fillna(df.groupby('country_name')['deadline'].transform('median'))
-df['duration'] = df['duration'].fillna('12 months')
+df['Duration'] = df['Duration'].fillna('12 months')
 #df['tution_1_currency'] = df['tution_1_currency'].fillna(df.groupby('country_name')['tution_1_currency'])
-df['tution_1_money'] = df['tution_1_money'].fillna(df.groupby('country_name')['tution_1_money'].transform('median'))
+df['Fee'] = df['Fee'].fillna(df.groupby('Country')['Fee'].transform('median'))
 df['tution_1_type'] = df['tution_1_type'].fillna('International')
 #df['tution_2_currency'] = df['tution_2_currency'].fillna(df.groupby('country_name')['tution_2_currency'].transform('median'))
-df['tution_2_money'] = df['tution_2_money'].fillna(df.groupby('country_name')['tution_2_money'].transform('median'))
+df['tution_2_money'] = df['tution_2_money'].fillna(df.groupby('Country')['tution_2_money'].transform('median'))
 df['tution_2_type'] = df['tution_2_type'].fillna('International')
-df['start_date'] = df['start_date'].fillna('  2018-09-01 00:00:00')
-df['ielts_score'] = df['ielts_score'].fillna(df.groupby('country_name')['ielts_score'].transform('median'))
+df['StartDate'] = df['StartDate'].fillna('  2018-09-01 00:00:00')
+df['IELTSScore'] = df['IELTSScore'].fillna(df.groupby('Country')['IELTSScore'].transform('median'))
 
 ########################################
 # Convert the duration to value in days
@@ -1301,7 +1321,7 @@ df['ielts_score'] = df['ielts_score'].fillna(df.groupby('country_name')['ielts_s
 # Add column for duration in days
 ########################################
 durationInDays = []
-for idx,d in enumerate(df['duration']):
+for idx,d in enumerate(df['Duration']):
     if (isinstance(d, str)):
         compOp, durn = findDuration(d)
         durationInDays.append(to_number(durn))
@@ -1327,21 +1347,21 @@ for idx,c in enumerate(df['city']):
     else:
         cityName.append(c) # whatever is in the column
 
-# Create new column "cityName" and add to dataset        
-df = df.assign(cityName=cityName)
+# Create new column "City" and add to dataset        
+df = df.assign(City=cityName)
 
 ########################################
 # Replace "Viet<space>Nam" with "Vietnam" in country name.
 ########################################
-d = df[(df['country_name'] == 'Viet Nam')]
-for (idx,v) in df[(df['country_name'] == 'Viet Nam')].iterrows():
-    df.loc[idx,'country_name'] = 'Vietnam'
+d = df[(df['Country'] == 'Viet Nam')]
+for (idx,v) in df[(df['Country'] == 'Viet Nam')].iterrows():
+    df.loc[idx,'Country'] = 'Vietnam'
 
 ################################################
 # Convert date from string into datetime object.
 ################################################
 start_date_conv = []
-for idx,d in enumerate(df['start_date']):
+for idx,d in enumerate(df['StartDate']):
     objDate = None
     if (isinstance(d, str)):
         objDate = datetime.strptime(d.strip(), '%Y-%m-%d %H:%M:%S')
@@ -1456,6 +1476,11 @@ while (True):
             print ("\n")
             print (bot_name, ": ", intent.response)
             entity.showdate = True
+            displayResults()
+        elif intent.intentType == 'showacadreqs':
+            print ("\n")
+            print (bot_name, ": ", intent.response)
+            entity.showacadreqs = True
             displayResults()
         elif intent.intentType == 'showuniv':
             print ("\n")
